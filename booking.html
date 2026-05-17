@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book & Order | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .tab-btn {
+            padding: 10px 24px;
+            border: 2px solid cyan;
+            background: transparent;
+            color: cyan;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            background: cyan;
+            color: black;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Tournament cards */
+        .tournament-card {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 24px;
+            border-left: 4px solid cyan;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .tournament-card h3 { margin: 0 0 6px 0; }
+        .tournament-card p { color: #aaa; margin: 0; font-size: 0.9rem; }
+        .price-tag {
+            font-size: 1.4rem;
+            color: cyan;
+            font-weight: bold;
+        }
+        .spots-left {
+            font-size: 0.8rem;
+            color: #ffaa00;
+            margin-top: 4px;
+        }
+
+        /* Shop */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .shop-card {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            transition: border-color 0.2s;
+        }
+        .shop-card:hover { border-color: cyan; }
+        .shop-card .icon { font-size: 3rem; margin-bottom: 12px; }
+        .shop-card h3 { font-size: 1rem; margin-bottom: 6px; }
+        .shop-card .shop-price { color: cyan; font-size: 1.2rem; font-weight: bold; margin: 8px 0; }
+        .shop-card input[type="number"] { width: 70px; text-align: center; }
+        .qty-row { display:flex; align-items:center; justify-content:center; gap:8px; margin:10px 0; }
+
+        .form-section {
+            background: #1e1e1e;
+            padding: 28px;
+            border-radius: 8px;
+            max-width: 600px;
+        }
+        .form-section h3 { margin-bottom: 20px; }
+
+        .success-msg {
+            display: none;
+            background: #00ff8815;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+        <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">NEXUS</div>
+            <div class="logo-sub">Esports Hub</div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-label">Navigation</div>
+            <ul class="nav-links">
+                <li><a href="index.html" ><i class="fa-solid fa-house"></i> Home</a></li>
+            </ul>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <div class="nav-section-label">Esports</div>
+            <ul class="nav-links">
+                <li><a href="games.html" ><i class="fa-solid fa-gamepad"></i> Games</a></li>
+                <li><a href="teams.html" ><i class="fa-solid fa-users"></i> Teams</a></li>
+                <li><a href="tournaments.html" ><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+                <li><a href="highlights.html" ><i class="fa-solid fa-film"></i> Highlights</a></li>
+            </ul>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <div class="nav-section-label">Account</div>
+            <ul class="nav-links">
+                <li><a href="login.html" ><i class="fa-solid fa-right-to-bracket"></i> Login / Register</a></li>
+                <li><a href="profile.html" ><i class="fa-solid fa-circle-user"></i> My Profile</a></li>
+                <li><a href="booking.html" class="active"><i class="fa-solid fa-ticket"></i> Book / Order</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-footer">&copy; 2026 NEXUS ESPORTS</div>
+    </nav>
+
+    <main>
+        <h1><i class="fa-solid fa-ticket"></i> Book & Order</h1>
+        <p>Reserve your spot in upcoming tournaments or grab official NEXUS merchandise.</p>
+
+        <div class="tabs" style="margin-top:24px;">
+            <button class="tab-btn active" onclick="switchTab('reservations', this)"><i class="fa-solid fa-trophy"></i> Tournament Reservations</button>
+            <button class="tab-btn" onclick="switchTab('shop', this)"><i class="fa-solid fa-bag-shopping"></i> Merch Shop</button>
+        </div>
+
+        <!-- RESERVATIONS TAB -->
+        <div id="tab-reservations" class="tab-panel active">
+            <div id="resSuccess" class="success-msg">
+                <i class="fa-solid fa-circle-check"></i> <strong>Reservation confirmed!</strong> Check your account page to view your bookings.
+            </div>
+
+            <h2 style="margin-bottom:20px;">Available Tournaments</h2>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> MSI 2026 — League of Legends</h3>
+                    <p><i class="fa-solid fa-calendar"></i> March 15–28, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> London, UK</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 8 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$49</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('MSI 2026', '$49')">Reserve Now</button>
+                </div>
+            </div>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> Valorant Masters Tokyo</h3>
+                    <p><i class="fa-solid fa-calendar"></i> April 5–20, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> Tokyo, Japan</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 15 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$39</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('Valorant Masters Tokyo', '$39')">Reserve Now</button>
+                </div>
+            </div>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> CS Major 2026</h3>
+                    <p><i class="fa-solid fa-calendar"></i> May 10–25, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> Copenhagen, Denmark</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 3 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$59</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('CS Major 2026', '$59')">Reserve Now</button>
+                </div>
+            </div>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> Fortnite World Cup Qualifier</h3>
+                    <p><i class="fa-solid fa-calendar"></i> June 1–7, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> New York, USA</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 22 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$29</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('Fortnite World Cup Qualifier', '$29')">Reserve Now</button>
+                </div>
+            </div>
+
+            <!-- Reservation form (shown after selecting a tournament) -->
+            <div id="resFormWrapper" style="display:none;margin-top:30px;">
+                <div class="form-section">
+                    <h3 id="resFormTitle">Complete Your Reservation</h3>
+                    <label for="resName">Full Name :</label>
+                    <input type="text" id="resName" placeholder="Your name" required>
+
+                    <label for="resEmail">Email :</label>
+                    <input type="email" id="resEmail" placeholder="example@domain.com" required>
+
+                    <label for="resTeam">Team Name (optional) :</label>
+                    <input type="text" id="resTeam" placeholder="Solo or team name">
+
+                    <label for="resGame">Game :</label>
+                    <select id="resGame">
+                        <option>League of Legends</option>
+                        <option>Valorant</option>
+                        <option>Counter-Strike</option>
+                        <option>Fortnite</option>
+                    </select>
+
+                    <label for="resPayment">Payment Method :</label>
+                    <select id="resPayment">
+                        <option>Credit Card</option>
+                        <option>PayPal</option>
+                        <option>Crypto</option>
+                    </select>
+
+                    <label for="resNotes">Special Requests :</label>
+                    <textarea id="resNotes" rows="3" placeholder="Any requests or notes..."></textarea>
+
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn" onclick="submitReservation()">Confirm Reservation</button>
+                        <button onclick="cancelResForm()" style="background:#333;color:#aaa;border:none;padding:10px 16px;border-radius:5px;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOP TAB -->
+        <div id="tab-shop" class="tab-panel">
+            <div id="shopSuccess" class="success-msg">
+                <i class="fa-solid fa-circle-check"></i> <strong>Order placed!</strong> Check your account page to track your orders.
+            </div>
+
+            <h2 style="margin-bottom:20px;">Official NEXUS Merch</h2>
+
+            <div class="shop-grid">
+                <div class="shop-card">
+                    <div class="icon">👕</div>
+                    <h3>NEXUS Jersey</h3>
+                    <p style="color:#aaa;font-size:0.85rem;">Official team jersey with your name on the back</p>
+                    <div class="shop-price">$34.99</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-jersey" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="addToCart('NEXUS Jersey', 34.99, 'qty-jersey')">Add to Cart</button>
+                </div>
+                <div class="shop-card">
+                    <div class="icon">🧢</div>
+                    <h3>NEXUS Cap</h3>
+                    <p style="color:#aaa;font-size:0.85rem;">Snapback cap with embroidered NEXUS logo</p>
+                    <div class="shop-price">$19.99</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-cap" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="addToCart('NEXUS Cap', 19.99, 'qty-cap')">Add to Cart</button>
+                </div>
+                <div class="shop-card">
+                    <div class="icon">🖱️</div>
+                    <h3>Pro Gaming Mouse</h3>
+                    <p style="color:#aaa;font-size:0.85rem;">High-DPI optical mouse endorsed by NEXUS pros</p>
+                    <div class="shop-price">$79.99</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-mouse" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="addToCart('Pro Gaming Mouse', 79.99, 'qty-mouse')">Add to Cart</button>
+                </div>
+                <div class="shop-card">
+                    <div class="icon">🎧</div>
+                    <h3>NEXUS Headset</h3>
+                    <p style="color:#aaa;font-size:0.85rem;">7.1 surround sound gaming headset</p>
+                    <div class="shop-price">$89.99</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-headset" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="addToCart('NEXUS Headset', 89.99, 'qty-headset')">Add to Cart</button>
+                </div>
+                <div class="shop-card">
+                    <div class="icon">⌨️</div>
+                    <h3>Mechanical Keyboard</h3>
+                    <p style="color:#aaa;font-size:0.85rem;">RGB TKL mechanical keyboard — cyan switches</p>
+                    <div class="shop-price">$119.99</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-kb" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="addToCart('Mechanical Keyboard', 119.99, 'qty-kb')">Add to Cart</button>
+                </div>
+                <div class="shop-card">
+                    <div class="icon">🏅</div>
+                    <h3>VIP Tournament Pass</h3>
+                    <p style="color:#aaa;font-size:0.85rem;">All-access pass to any 2026 NEXUS event</p>
+                    <div class="shop-price">$199.99</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-vip" value="1" min="1" max="10">
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="addToCart('VIP Tournament Pass', 199.99, 'qty-vip')">Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Cart -->
+            <div id="cartSection" style="display:none;">
+                <div class="form-section">
+                    <h3><i class="fa-solid fa-cart-shopping"></i> Your Cart</h3>
+                    <div id="cartItems"></div>
+                    <div style="border-top:1px solid #444;margin-top:12px;padding-top:12px;">
+                        <strong style="color:cyan;font-size:1.2rem;">Total: $<span id="cartTotal">0.00</span></strong>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <label for="shopEmail">Email for order confirmation :</label>
+                        <input type="email" id="shopEmail" placeholder="example@domain.com" required>
+
+                        <label for="shopAddress">Shipping Address :</label>
+                        <textarea id="shopAddress" rows="3" placeholder="Street, City, Country..."></textarea>
+
+                        <label for="shopPayment">Payment Method :</label>
+                        <select id="shopPayment">
+                            <option>Credit Card</option>
+                            <option>PayPal</option>
+                            <option>Bank Transfer</option>
+                        </select>
+
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                            <button class="btn" onclick="placeOrder()">Place Order</button>
+                            <button onclick="clearCart()" style="background:#333;color:#aaa;border:none;padding:10px 16px;border-radius:5px;cursor:pointer;">Clear Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>&copy; 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+    </main>
+
+    <script>
+        let selectedTournament = '';
+        let cart = [];
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Pre-fill email if logged in
+        window.onload = () => {
+            const user = JSON.parse(localStorage.getItem('nexus_currentUser') || '{}');
+            if (user.email) {
+                document.getElementById('resEmail').value = user.email;
+                document.getElementById('shopEmail').value = user.email;
+                document.getElementById('resName').value = user.username || '';
+            }
+        };
+
+        function selectTournament(name, price) {
+            selectedTournament = name;
+            document.getElementById('resFormTitle').textContent = `Reserve: ${name} — ${price}`;
+            document.getElementById('resFormWrapper').style.display = 'block';
+            document.getElementById('resFormWrapper').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelResForm() {
+            document.getElementById('resFormWrapper').style.display = 'none';
+        }
+
+        function submitReservation() {
+            const name = document.getElementById('resName').value.trim();
+            const email = document.getElementById('resEmail').value.trim();
+            const team = document.getElementById('resTeam').value.trim() || 'Solo';
+            const game = document.getElementById('resGame').value;
+
+            if (!name || !email) { alert('Please fill in your name and email.'); return; }
+
+            const booking = {
+                tournament: selectedTournament,
+                email, name, team, game,
+                date: new Date().toLocaleDateString()
+            };
+
+            const bookings = JSON.parse(localStorage.getItem('nexus_bookings') || '[]');
+            bookings.push(booking);
+            localStorage.setItem('nexus_bookings', JSON.stringify(bookings));
+
+            document.getElementById('resFormWrapper').style.display = 'none';
+            const msg = document.getElementById('resSuccess');
+            msg.style.display = 'block';
+            msg.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => msg.style.display = 'none', 5000);
+        }
+
+        function addToCart(item, price, qtyId) {
+            const qty = parseInt(document.getElementById(qtyId).value) || 1;
+            const existing = cart.find(c => c.item === item);
+            if (existing) { existing.qty += qty; }
+            else { cart.push({ item, price, qty }); }
+            renderCart();
+        }
+
+        function renderCart() {
+            if (cart.length === 0) {
+                document.getElementById('cartSection').style.display = 'none';
+                return;
+            }
+            document.getElementById('cartSection').style.display = 'block';
+            const items = cart.map((c, i) => `
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #333;">
+                    <span>${c.item} × ${c.qty}</span>
+                    <span style="color:cyan;">$${(c.price * c.qty).toFixed(2)} <span onclick="removeFromCart(${i})" style="color:#ff4d4d;cursor:pointer;margin-left:10px;"><i class="fa-solid fa-trash-can"></i></span></span>
+                </div>
+            `).join('');
+            document.getElementById('cartItems').innerHTML = items;
+            const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+            document.getElementById('cartTotal').textContent = total.toFixed(2);
+            document.getElementById('cartSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function removeFromCart(i) {
+            cart.splice(i, 1);
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        function placeOrder() {
+            const email = document.getElementById('shopEmail').value.trim();
+            const address = document.getElementById('shopAddress').value.trim();
+            if (!email || !address) { alert('Please fill in email and shipping address.'); return; }
+            if (cart.length === 0) { alert('Your cart is empty!'); return; }
+
+            const orders = JSON.parse(localStorage.getItem('nexus_orders') || '[]');
+            cart.forEach(c => {
+                orders.push({ ...c, email, address, date: new Date().toLocaleDateString() });
+            });
+            localStorage.setItem('nexus_orders', JSON.stringify(orders));
+
+            cart = [];
+            renderCart();
+            const msg = document.getElementById('shopSuccess');
+            msg.style.display = 'block';
+            msg.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => msg.style.display = 'none', 5000);
+        }
+    </script>
+</body>
+</html>

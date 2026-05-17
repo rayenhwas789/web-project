@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid cyan;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid cyan;
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: cyan;
+            flex-shrink: 0;
+        }
+        .profile-info h2 { margin: 0 0 6px 0; font-size: 1.8rem; }
+        .profile-info p { color: #aaa; margin: 0; }
+        .badge {
+            display: inline-block;
+            background: cyan;
+            color: black;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card .num { font-size: 2rem; color: cyan; font-weight: bold; }
+        .stat-card .label { color: #aaa; font-size: 0.85rem; margin-top: 4px; }
+        .section-box {
+            background: #1e1e1e;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .section-box h3 { margin-bottom: 16px; }
+        .booking-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        .booking-row:last-child { border-bottom: none; }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .status-confirmed { background: #00ff8840; color: #00ff88; }
+        .status-pending { background: #ffaa0040; color: #ffaa00; }
+        .status-cancelled { background: #ff4d4d40; color: #ff4d4d; }
+        .skill-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 10px;
+            margin-top: 8px;
+        }
+        .skill-fill {
+            background: linear-gradient(90deg, cyan, #0077ff);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #ff4d4d;
+            color: #ff4d4d;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .logout-btn:hover { background: #ff4d4d; color: white; }
+        .game-tag {
+            display: inline-block;
+            background: #222;
+            border: 1px solid cyan;
+            color: cyan;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 3px;
+        }
+    </style>
+</head>
+<body>
+        <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">NEXUS</div>
+            <div class="logo-sub">Esports Hub</div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-label">Navigation</div>
+            <ul class="nav-links">
+                <li><a href="index.html" ><i class="fa-solid fa-house"></i> Home</a></li>
+            </ul>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <div class="nav-section-label">Esports</div>
+            <ul class="nav-links">
+                <li><a href="games.html" ><i class="fa-solid fa-gamepad"></i> Games</a></li>
+                <li><a href="teams.html" ><i class="fa-solid fa-users"></i> Teams</a></li>
+                <li><a href="tournaments.html" ><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+                <li><a href="highlights.html" ><i class="fa-solid fa-film"></i> Highlights</a></li>
+            </ul>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <div class="nav-section-label">Account</div>
+            <ul class="nav-links">
+                <li><a href="login.html" ><i class="fa-solid fa-right-to-bracket"></i> Login / Register</a></li>
+                <li><a href="profile.html" class="active"><i class="fa-solid fa-circle-user"></i> My Profile</a></li>
+                <li><a href="booking.html" ><i class="fa-solid fa-ticket"></i> Book / Order</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-footer">&copy; 2026 NEXUS ESPORTS</div>
+    </nav>
+
+    <main id="mainContent">
+        <!-- Content injected by JS -->
+    </main>
+
+    <script>
+        const loggedIn = localStorage.getItem('nexus_loggedIn');
+        const main = document.getElementById('mainContent');
+
+        if (!loggedIn) {
+            main.innerHTML = `
+                <div style="text-align:center;padding:80px 20px;">
+                    <i class="fa-solid fa-lock" style="font-size:4rem;color:cyan;margin-bottom:20px;display:block;"></i>
+                    <h2>Access Restricted</h2>
+                    <p style="color:#aaa;margin:16px 0 24px;">You must be logged in to view your account.</p>
+                    <a href="login.html" class="btn">Login Now</a>
+                    <span style="margin:0 10px;color:#aaa;">or</span>
+                    <a href="registration.html" class="btn" style="background:#222;color:cyan;border:1px solid cyan;">Create Account</a>
+                </div>
+                <footer>&copy; 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+            `;
+        } else {
+            const user = JSON.parse(localStorage.getItem('nexus_currentUser') || '{}');
+            const bookings = JSON.parse(localStorage.getItem('nexus_bookings') || '[]');
+            const userBookings = bookings.filter(b => b.email === user.email);
+            const orders = JSON.parse(localStorage.getItem('nexus_orders') || '[]');
+            const userOrders = orders.filter(o => o.email === user.email);
+
+            const gamesArr = Array.isArray(user.games) ? user.games : [];
+            const skill = user.skilllevel || 50;
+
+            const bookingRows = userBookings.length > 0 
+                ? userBookings.map(b => `
+                    <div class="booking-row">
+                        <div>
+                            <strong>${b.tournament}</strong>
+                            <div style="color:#aaa;font-size:0.85rem;">${b.team} &bull; ${b.date}</div>
+                        </div>
+                        <span class="status-badge status-confirmed">Confirmed</span>
+                    </div>`).join('')
+                : '<p style="color:#aaa;">No tournament reservations yet. <a href="booking.html" style="color:cyan;">Book one now!</a></p>';
+
+            const orderRows = userOrders.length > 0
+                ? userOrders.map(o => `
+                    <div class="booking-row">
+                        <div>
+                            <strong>${o.item}</strong>
+                            <div style="color:#aaa;font-size:0.85rem;">${o.qty} × $${o.price} &bull; ${o.date}</div>
+                        </div>
+                        <span class="status-badge status-pending">Processing</span>
+                    </div>`).join('')
+                : '<p style="color:#aaa;">No orders yet. <a href="booking.html" style="color:cyan;">Browse the shop!</a></p>';
+
+            main.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+                    <h1><i class="fa-solid fa-circle-user"></i> My Account</h1>
+                    <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </div>
+
+                <div class="profile-header">
+                    <div class="profile-avatar"><i class="fa-solid fa-gamepad"></i></div>
+                    <div class="profile-info">
+                        <h2>${user.username || 'Gamer'}</h2>
+                        <p>${user.email || ''}</p>
+                        <p style="margin-top:8px;color:#ccc;">${user.bio || 'No bio set.'}</p>
+                        <span class="badge"><i class="fa-solid fa-star"></i> NEXUS Member</span>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="num">${userBookings.length}</div>
+                        <div class="label">Tournaments Booked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="num">${userOrders.length}</div>
+                        <div class="label">Orders Placed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="num">${gamesArr.length || '—'}</div>
+                        <div class="label">Favourite Games</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="num">${skill}</div>
+                        <div class="label">Skill Level</div>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h3><i class="fa-solid fa-gamepad"></i> Favourite Games</h3>
+                    ${gamesArr.length > 0 
+                        ? gamesArr.map(g => `<span class="game-tag">${g}</span>`).join('') 
+                        : '<p style="color:#aaa;">None selected.</p>'}
+                </div>
+
+                <div class="section-box">
+                    <h3><i class="fa-solid fa-chart-line"></i> Skill Level — ${skill}/100</h3>
+                    <div class="skill-bar"><div class="skill-fill" style="width:${skill}%"></div></div>
+                </div>
+
+                <div class="section-box">
+                    <h3><i class="fa-solid fa-ticket"></i> My Tournament Reservations</h3>
+                    ${bookingRows}
+                </div>
+
+                <div class="section-box">
+                    <h3><i class="fa-solid fa-bag-shopping"></i> My Orders</h3>
+                    ${orderRows}
+                </div>
+
+                <footer>&copy; 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+            `;
+        }
+
+        function logout() {
+            localStorage.removeItem('nexus_loggedIn');
+            localStorage.removeItem('nexus_currentUser');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

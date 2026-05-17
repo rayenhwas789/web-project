@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Admin-specific sidebar override */
+        .admin-nav {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            background: #050505;
+            padding: 20px;
+            border-right: 1px solid #ff440020;
+        }
+        .admin-nav .logo { color: #ff4400; }
+        .admin-nav .nav-links a { color: #aaa; }
+        .admin-nav .nav-links a.active { background: #ff440020; color: #ff4400; }
+
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .admin-tab-btn {
+            padding: 9px 18px;
+            border: 1px solid #ff4400;
+            background: transparent;
+            color: #ff4400;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .admin-tab-btn.active, .admin-tab-btn:hover {
+            background: #ff4400;
+            color: white;
+        }
+        .admin-panel { display: none; }
+        .admin-panel.active { display: block; }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 3px solid #ff4400;
+        }
+        .stat-card .num { font-size: 2rem; color: #ff4400; font-weight: bold; }
+        .stat-card .label { color: #aaa; font-size: 0.8rem; margin-top: 4px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background: #ff440020;
+            color: #ff4400;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.9rem;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #252525; }
+
+        .action-btn {
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+        .btn-edit { background: #0077ff; color: white; }
+        .btn-delete { background: #ff4d4d; color: white; }
+        .btn-view { background: #00aa55; color: white; }
+
+        .admin-form {
+            background: #1e1e1e;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin-top: 24px;
+        }
+        .admin-form h3 { margin-bottom: 18px; color: #ff4400; }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+        }
+
+        /* Chart bars */
+        .bar-chart { margin-top: 16px; }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .bar-label { width: 160px; color: #aaa; font-size: 0.85rem; flex-shrink: 0; }
+        .bar-track { flex: 1; background: #2a2a2a; border-radius: 10px; height: 22px; position: relative; }
+        .bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #ff4400, #ff8800); transition: width 1s ease; }
+        .bar-val { width: 40px; text-align: right; color: #ff4400; font-weight: bold; font-size: 0.9rem; }
+
+        .badge-status {
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .s-active { background:#00ff8830; color:#00ff88; }
+        .s-pending { background:#ffaa0030; color:#ffaa00; }
+        .s-banned  { background:#ff4d4d30; color:#ff4d4d; }
+
+        .upload-area {
+            border: 2px dashed #ff4400;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .upload-area:hover { background: #ff440010; }
+        .upload-area i { font-size: 2rem; color: #ff4400; display: block; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar admin-nav">
+        <div class="logo"><i class="fa-solid fa-shield-halved"></i> ADMIN</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to Site</a></li>
+            <li><a href="admin.html" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+        </ul>
+        <div style="margin-top:30px;padding:16px;background:#ff440015;border-radius:8px;border:1px solid #ff440030;">
+            <div style="color:#ff4400;font-weight:bold;font-size:0.85rem;"><i class="fa-solid fa-lock"></i> ADMIN ACCESS</div>
+            <div style="color:#aaa;font-size:0.78rem;margin-top:4px;">Use: admin@nexus.gg<br>Pass: admin2026</div>
+        </div>
+    </nav>
+
+    <main id="adminMain">
+        <!-- login wall injected by JS if not admin -->
+    </main>
+
+    <script>
+        const ADMIN_EMAIL = 'admin@nexus.gg';
+        const ADMIN_PASS = 'admin2026';
+
+        // Seed demo data if empty
+        function seedData() {
+            if (!localStorage.getItem('nexus_demo_seeded')) {
+                localStorage.setItem('nexus_users', JSON.stringify([
+                    { username: 'ProGamer99', email: 'demo@nexus.gg', password: 'nexus123', country: 'TN', games: ['Valorant','LoL'], skilllevel: 87 },
+                    { username: 'SnipeKing', email: 'snipe@king.com', password: 'pass123', country: 'FR', games: ['CS'], skilllevel: 72 },
+                    { username: 'FortMaster', email: 'fort@master.io', password: 'fort456', country: 'US', games: ['Fortnite'], skilllevel: 55 },
+                    { username: 'MidlaneGod', email: 'mid@lane.gg', password: 'mid789', country: 'KR', games: ['LoL'], skilllevel: 94 },
+                ]));
+                localStorage.setItem('nexus_bookings', JSON.stringify([
+                    { name: 'ProGamer99', email: 'demo@nexus.gg', tournament: 'Valorant Masters Tokyo', team: 'Alpha Squad', game: 'Valorant', date: '05/10/2026' },
+                    { name: 'MidlaneGod', email: 'mid@lane.gg', tournament: 'MSI 2026', team: 'G2 Fan Team', game: 'League of Legends', date: '05/12/2026' },
+                    { name: 'SnipeKing', email: 'snipe@king.com', tournament: 'CS Major 2026', team: 'Shadow', game: 'Counter-Strike', date: '05/14/2026' },
+                ]));
+                localStorage.setItem('nexus_orders', JSON.stringify([
+                    { item: 'NEXUS Jersey', qty: 2, price: 34.99, email: 'demo@nexus.gg', address: 'Tunis, TN', date: '05/10/2026' },
+                    { item: 'Pro Gaming Mouse', qty: 1, price: 79.99, email: 'snipe@king.com', address: 'Paris, FR', date: '05/11/2026' },
+                    { item: 'NEXUS Headset', qty: 1, price: 89.99, email: 'fort@master.io', address: 'NYC, US', date: '05/13/2026' },
+                    { item: 'VIP Tournament Pass', qty: 1, price: 199.99, email: 'mid@lane.gg', address: 'Seoul, KR', date: '05/15/2026' },
+                ]));
+                localStorage.setItem('nexus_products', JSON.stringify([
+                    { id: 1, name: 'NEXUS Jersey', category: 'Apparel', price: 34.99, stock: 150, image: '👕' },
+                    { id: 2, name: 'NEXUS Cap', category: 'Apparel', price: 19.99, stock: 200, image: '🧢' },
+                    { id: 3, name: 'Pro Gaming Mouse', category: 'Hardware', price: 79.99, stock: 45, image: '🖱️' },
+                    { id: 4, name: 'NEXUS Headset', category: 'Hardware', price: 89.99, stock: 30, image: '🎧' },
+                    { id: 5, name: 'Mechanical Keyboard', category: 'Hardware', price: 119.99, stock: 20, image: '⌨️' },
+                    { id: 6, name: 'VIP Tournament Pass', category: 'Passes', price: 199.99, stock: 100, image: '🏅' },
+                ]));
+                localStorage.setItem('nexus_demo_seeded', '1');
+            }
+        }
+
+        seedData();
+
+        const adminAuth = sessionStorage.getItem('nexus_admin');
+        const mainEl = document.getElementById('adminMain');
+
+        if (!adminAuth) {
+            mainEl.innerHTML = `
+                <h1><i class="fa-solid fa-shield-halved" style="color:#ff4400;"></i> Admin Login</h1>
+                <p style="color:#aaa;">Restricted area. Admin credentials required.</p>
+                <form style="max-width:400px;background:#1e1e1e;padding:28px;border-radius:8px;margin-top:24px;" onsubmit="adminLogin(event)">
+                    <h2 style="color:#ff4400;text-align:center;margin-bottom:20px;">Admin Access</h2>
+                    <label>Email :</label>
+                    <input type="email" id="aEmail" placeholder="admin@nexus.gg" required>
+                    <label>Password :</label>
+                    <input type="password" id="aPass" placeholder="Password" required>
+                    <div id="adminErr" style="display:none;color:#ff4d4d;margin-bottom:12px;padding:10px;background:#1e1e1e;border-left:3px solid #ff4d4d;border-radius:4px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Invalid credentials.
+                    </div>
+                    <input type="submit" value="Login as Admin" class="btn" style="width:100%;background:#ff4400;">
+                </form>
+                <footer style="margin-top:40px;">&copy; 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+            `;
+        } else {
+            renderDashboard();
+        }
+
+        function adminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('aEmail').value.trim();
+            const pass = document.getElementById('aPass').value;
+            if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+                sessionStorage.setItem('nexus_admin', '1');
+                renderDashboard();
+            } else {
+                document.getElementById('adminErr').style.display = 'block';
+            }
+        }
+
+        function renderDashboard() {
+            const users = JSON.parse(localStorage.getItem('nexus_users') || '[]');
+            const bookings = JSON.parse(localStorage.getItem('nexus_bookings') || '[]');
+            const orders = JSON.parse(localStorage.getItem('nexus_orders') || '[]');
+            const products = JSON.parse(localStorage.getItem('nexus_products') || '[]');
+
+            const revenue = orders.reduce((s, o) => s + o.price * o.qty, 0).toFixed(2);
+
+            mainEl.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+                    <h1><i class="fa-solid fa-gauge" style="color:#ff4400;"></i> Admin Dashboard</h1>
+                    <button onclick="adminLogout()" style="background:transparent;border:1px solid #ff4d4d;color:#ff4d4d;padding:8px 18px;border-radius:5px;cursor:pointer;font-weight:bold;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="num">${users.length}</div><div class="label">Registered Users</div></div>
+                    <div class="stat-card"><div class="num">${bookings.length}</div><div class="label">Reservations</div></div>
+                    <div class="stat-card"><div class="num">${orders.length}</div><div class="label">Orders</div></div>
+                    <div class="stat-card"><div class="num">$${revenue}</div><div class="label">Total Revenue</div></div>
+                    <div class="stat-card"><div class="num">${products.length}</div><div class="label">Products</div></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" onclick="switchAdmin('clients', this)"><i class="fa-solid fa-users"></i> Clients</button>
+                    <button class="admin-tab-btn" onclick="switchAdmin('products', this)"><i class="fa-solid fa-box"></i> Products</button>
+                    <button class="admin-tab-btn" onclick="switchAdmin('reservations', this)"><i class="fa-solid fa-ticket"></i> Reservations</button>
+                    <button class="admin-tab-btn" onclick="switchAdmin('orders', this)"><i class="fa-solid fa-bag-shopping"></i> Orders</button>
+                    <button class="admin-tab-btn" onclick="switchAdmin('stats', this)"><i class="fa-solid fa-chart-bar"></i> Statistics</button>
+                </div>
+
+                <!-- CLIENTS -->
+                <div id="admin-clients" class="admin-panel active">
+                    <div class="search-bar">
+                        <input type="text" id="clientSearch" placeholder="Search clients..." oninput="filterTable('clientSearch','clientTable')">
+                    </div>
+                    <table>
+                        <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Country</th><th>Skill</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="clientTable">
+                            ${users.map((u, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td><strong>${u.username}</strong></td>
+                                    <td>${u.email}</td>
+                                    <td>${u.country || '—'}</td>
+                                    <td>${u.skilllevel || '—'}/100</td>
+                                    <td><span class="badge-status s-active">Active</span></td>
+                                    <td>
+                                        <button class="action-btn btn-view" onclick="alert('User: ${u.username}\\nEmail: ${u.email}\\nCountry: ${u.country||'N/A'}\\nGames: ${(u.games||[]).join(', ')||'N/A'}\\nSkill: ${u.skilllevel||'N/A'}')"><i class="fa-solid fa-eye"></i></button>
+                                        <button class="action-btn btn-delete" onclick="deleteUser(${i})"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PRODUCTS -->
+                <div id="admin-products" class="admin-panel">
+                    <button class="btn" style="background:#ff4400;margin-bottom:16px;" onclick="toggleProductForm()"><i class="fa-solid fa-plus"></i> Add Product</button>
+                    <div id="productFormWrap" style="display:none;">
+                        <div class="admin-form" style="margin-bottom:20px;">
+                            <h3><i class="fa-solid fa-plus"></i> Add New Product</h3>
+                            <label>Product Name :</label>
+                            <input type="text" id="pName" placeholder="e.g. NEXUS Hoodie">
+                            <label>Category :</label>
+                            <select id="pCat"><option>Apparel</option><option>Hardware</option><option>Passes</option><option>Accessories</option></select>
+                            <label>Price ($) :</label>
+                            <input type="number" id="pPrice" placeholder="29.99" step="0.01" min="0">
+                            <label>Stock :</label>
+                            <input type="number" id="pStock" placeholder="100" min="0">
+                            <label>Image / Icon :</label>
+                            <div class="upload-area" onclick="document.getElementById('pFile').click()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Click to upload product image</span>
+                                <input type="file" id="pFile" accept="image/*" style="display:none;" onchange="previewFile(this)">
+                            </div>
+                            <div id="filePreview"></div>
+                            <button class="btn" style="background:#ff4400;" onclick="addProduct()">Save Product</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead><tr><th>#</th><th>Icon</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+                        <tbody id="productTable">
+                            ${products.map((p, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td style="font-size:1.4rem;">${p.image}</td>
+                                    <td><strong>${p.name}</strong></td>
+                                    <td>${p.category}</td>
+                                    <td style="color:cyan;">$${p.price.toFixed(2)}</td>
+                                    <td>${p.stock}</td>
+                                    <td>
+                                        <button class="action-btn btn-delete" onclick="deleteProduct(${i})"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- RESERVATIONS -->
+                <div id="admin-reservations" class="admin-panel">
+                    <div class="search-bar">
+                        <input type="text" id="resSearch" placeholder="Search reservations..." oninput="filterTable('resSearch','resTable')">
+                    </div>
+                    <table>
+                        <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Tournament</th><th>Game</th><th>Team</th><th>Date</th><th>Actions</th></tr></thead>
+                        <tbody id="resTable">
+                            ${bookings.map((b, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td><strong>${b.name}</strong></td>
+                                    <td>${b.email}</td>
+                                    <td>${b.tournament}</td>
+                                    <td>${b.game}</td>
+                                    <td>${b.team}</td>
+                                    <td>${b.date}</td>
+                                    <td>
+                                        <button class="action-btn btn-delete" onclick="deleteBooking(${i})"><i class="fa-solid fa-trash"></i></button>
+                                    </td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ORDERS -->
+                <div id="admin-orders" class="admin-panel">
+                    <div class="search-bar">
+                        <input type="text" id="ordSearch" placeholder="Search orders..." oninput="filterTable('ordSearch','ordTable')">
+                    </div>
+                    <table>
+                        <thead><tr><th>#</th><th>Email</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
+                        <tbody id="ordTable">
+                            ${orders.map((o, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td>${o.email}</td>
+                                    <td><strong>${o.item}</strong></td>
+                                    <td>${o.qty}</td>
+                                    <td>$${o.price.toFixed(2)}</td>
+                                    <td style="color:cyan;">$${(o.price*o.qty).toFixed(2)}</td>
+                                    <td>${o.date}</td>
+                                    <td><span class="badge-status s-pending">Processing</span></td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- STATISTICS -->
+                <div id="admin-stats" class="admin-panel">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
+                        <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                            <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-gamepad"></i> Games Popularity</h3>
+                            <div class="bar-chart">
+                                ${buildBar('Valorant', countBookings(bookings,'Valorant'), bookings.length)}
+                                ${buildBar('League of Legends', countBookings(bookings,'League of Legends'), bookings.length)}
+                                ${buildBar('Counter-Strike', countBookings(bookings,'Counter-Strike'), bookings.length)}
+                                ${buildBar('Fortnite', countBookings(bookings,'Fortnite'), bookings.length)}
+                            </div>
+                        </div>
+                        <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                            <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-bag-shopping"></i> Top Products by Revenue</h3>
+                            <div class="bar-chart">
+                                ${buildProductBars(orders)}
+                            </div>
+                        </div>
+                        <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                            <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-globe"></i> Users by Country</h3>
+                            <div class="bar-chart">
+                                ${buildCountryBars(users)}
+                            </div>
+                        </div>
+                        <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                            <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-chart-line"></i> Summary</h3>
+                            <table style="background:transparent;">
+                                <tr><td style="color:#aaa;padding:8px 4px;">Total Users</td><td style="color:cyan;font-weight:bold;">${users.length}</td></tr>
+                                <tr><td style="color:#aaa;padding:8px 4px;">Total Bookings</td><td style="color:cyan;font-weight:bold;">${bookings.length}</td></tr>
+                                <tr><td style="color:#aaa;padding:8px 4px;">Total Orders</td><td style="color:cyan;font-weight:bold;">${orders.length}</td></tr>
+                                <tr><td style="color:#aaa;padding:8px 4px;">Total Revenue</td><td style="color:cyan;font-weight:bold;">$${revenue}</td></tr>
+                                <tr><td style="color:#aaa;padding:8px 4px;">Avg Order Value</td><td style="color:cyan;font-weight:bold;">$${orders.length ? (orders.reduce((s,o)=>s+o.price*o.qty,0)/orders.length).toFixed(2) : '0.00'}</td></tr>
+                                <tr><td style="color:#aaa;padding:8px 4px;">Products Listed</td><td style="color:cyan;font-weight:bold;">${products.length}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <footer style="margin-top:40px;">&copy; 2026 NEXUS ESPORTS Admin Panel. All Rights Reserved.</footer>
+            `;
+        }
+
+        function countBookings(bookings, game) {
+            return bookings.filter(b => b.game && b.game.toLowerCase().includes(game.toLowerCase())).length;
+        }
+
+        function buildBar(label, val, total) {
+            const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+            return `<div class="bar-row">
+                <div class="bar-label">${label}</div>
+                <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+                <div class="bar-val">${val}</div>
+            </div>`;
+        }
+
+        function buildProductBars(orders) {
+            const totals = {};
+            orders.forEach(o => { totals[o.item] = (totals[o.item] || 0) + o.price * o.qty; });
+            const max = Math.max(...Object.values(totals), 1);
+            return Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name, val]) =>
+                `<div class="bar-row">
+                    <div class="bar-label" style="font-size:0.78rem;">${name}</div>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/max*100)}%"></div></div>
+                    <div class="bar-val" style="font-size:0.8rem;">$${val.toFixed(0)}</div>
+                </div>`
+            ).join('') || '<p style="color:#aaa;">No orders yet.</p>';
+        }
+
+        function buildCountryBars(users) {
+            const counts = {};
+            users.forEach(u => { if(u.country) counts[u.country] = (counts[u.country]||0)+1; });
+            const max = Math.max(...Object.values(counts), 1);
+            return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([c,v]) =>
+                `<div class="bar-row">
+                    <div class="bar-label">${c}</div>
+                    <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/max*100)}%"></div></div>
+                    <div class="bar-val">${v}</div>
+                </div>`
+            ).join('') || '<p style="color:#aaa;">No users yet.</p>';
+        }
+
+        function switchAdmin(tab, btn) {
+            document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('admin-' + tab).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function filterTable(inputId, tableId) {
+            const q = document.getElementById(inputId).value.toLowerCase();
+            const rows = document.querySelectorAll(`#${tableId} tr`);
+            rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+        }
+
+        function deleteUser(i) {
+            if (!confirm('Delete this user?')) return;
+            const users = JSON.parse(localStorage.getItem('nexus_users') || '[]');
+            users.splice(i, 1);
+            localStorage.setItem('nexus_users', JSON.stringify(users));
+            renderDashboard();
+        }
+
+        function deleteBooking(i) {
+            if (!confirm('Delete this reservation?')) return;
+            const bookings = JSON.parse(localStorage.getItem('nexus_bookings') || '[]');
+            bookings.splice(i, 1);
+            localStorage.setItem('nexus_bookings', JSON.stringify(bookings));
+            renderDashboard(); switchAdmin('reservations', document.querySelectorAll('.admin-tab-btn')[2]);
+        }
+
+        function toggleProductForm() {
+            const w = document.getElementById('productFormWrap');
+            w.style.display = w.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function previewFile(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('filePreview').innerHTML = `<p style="color:#00ff88;margin-bottom:10px;"><i class="fa-solid fa-check"></i> File selected: ${file.name}</p>`;
+            }
+        }
+
+        function addProduct() {
+            const name = document.getElementById('pName').value.trim();
+            const cat = document.getElementById('pCat').value;
+            const price = parseFloat(document.getElementById('pPrice').value);
+            const stock = parseInt(document.getElementById('pStock').value);
+            if (!name || isNaN(price) || isNaN(stock)) { alert('Please fill in all fields.'); return; }
+            const products = JSON.parse(localStorage.getItem('nexus_products') || '[]');
+            products.push({ id: Date.now(), name, category: cat, price, stock, image: '📦' });
+            localStorage.setItem('nexus_products', JSON.stringify(products));
+            renderDashboard();
+            switchAdmin('products', document.querySelectorAll('.admin-tab-btn')[1]);
+        }
+
+        function deleteProduct(i) {
+            if (!confirm('Delete this product?')) return;
+            const products = JSON.parse(localStorage.getItem('nexus_products') || '[]');
+            products.splice(i, 1);
+            localStorage.setItem('nexus_products', JSON.stringify(products));
+            renderDashboard();
+            switchAdmin('products', document.querySelectorAll('.admin-tab-btn')[1]);
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem('nexus_admin');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

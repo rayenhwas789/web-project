@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> Home</a></li>
+            <li><a href="games.html"><i class="fa-solid fa-chess-board"></i> Games</a></li>
+            <li><a href="teams.html"><i class="fa-solid fa-users"></i> Teams</a></li>
+            <li><a href="tournaments.html"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+            <li><a href="registration.html" class="active"><i class="fa-solid fa-user-plus"></i> Register</a></li>
+            <li><a href="highlights.html"><i class="fa-solid fa-film"></i> Highlights</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h1>Create Your NEXUS Account</h1>
+        <p>Join the esports community , register to follow tournaments, teams, and highlights!</p>
+
+        <form action="success.html" method="post" class="registration-form">
+            <fieldset>
+                <legend>Personal Information</legend>
+        </br>
+        </br>
+
+                <label for="username">Username / Gamer Tag :</label>
+                <input type="text" id="username" name="username" maxlength="20" placeholder="Enter your gamer tag" required>
+
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+
+                <label for="password">Password :</label>
+                <input type="password" id="password" name="password" required>
+
+                <label for="age">Age :</label>
+                <input type="number" id="age" name="age" min="13" max="40" placeholder="13-40" required>
+                
+            </fieldset>
+        </br>
+            <fieldset>
+                <legend>Profile & Preferences</legend>
+        </br>
+        </br>
+
+                <label for="profilepic">Profile Picture :</label>
+                <input type="file" id="profilepic" name="profilepic" accept="image/*">
+
+                <label for="favoritecolor">Favorite Color (theme) :</label>
+                <input type="color" id="favoritecolor" name="favoritecolor" value="#00ffff">
+
+                <label for="bio">Short Bio / About you :</label>
+                <textarea id="bio" name="bio" rows="6" cols="40" placeholder="Tell us about your gaming passion..."></textarea>
+
+                <label for="skilllevel">Skill Level (1 = Beginner — 100 = Pro) :</label>
+                <input type="range" id="skilllevel" name="skilllevel" min="1" max="100" value="50">
+                <span id="skillvalue">50</span>
+
+                <br><br>
+
+                <label>Gender :</label><br>
+                <label for="male">Male</label>
+                <input type="radio" id="male" name="gender" value="male">
+
+                <label for="female">Female</label>
+                <input type="radio" id="female" name="gender" value="female">
+
+
+                <br><br>
+
+                <label>Favorite Games :</label><br>
+                <label for="fortnite">Fortnite</label>
+
+                <input type="checkbox" id="fortnite" name="games[]" value="Fortnite">
+
+                <label for="valorant">Valorant</label>
+                <input type="checkbox" id="valorant" name="games[]" value="Valorant">
+
+                <label for="lol">League of Legends</label>
+                <input type="checkbox" id="lol" name="games[]" value="League of Legends">
+                
+
+                <label for="cs">Counter-Strike</label>
+
+                <input type="checkbox" id="cs" name="games[]" value="Counter-Strike">
+
+                <br><br>
+
+                <label for="country">Country :</label>
+                <select id="country" name="country[]" multiple size="5">
+                    <option value="TN" selected>Tunisia</option>
+                    <option value="FR">France</option>
+                    <option value="US">United States</option>
+                    <option value="KR">South Korea</option>
+                    <option value="BR">Brazil</option>
+                    <option value="DE">Germany</option>
+                    <option value="TR">Turkey</option>
+                </select>
+            </fieldset>
+
+            <br>
+            <input type="reset" value="Reset Form" class="btn" style="background:#444; color:white;">
+            <input type="submit" value="Create Account" class="btn">
+        </form>
+
+        <footer>© 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+GAME 1 fortnite
+
+eq1 falcons:
+japko  Poland 
+peterbot  usa
+tayson  Slovenia
+
+eq2 redBullEsports:
+mrSavage Norway 
+Mongraal uk
+
+------------------------------
+
+
+GAME 2 valorant 
+
+eq1 mibr :
+aspas brazil 
+sacy brazil
+xenom brazil
+artzin brazil
+verno us  
+
+eq2 G2 Esports:
+jawgemo cambodia
+valyn us
+leaf us
+trent us
+jonahp Canada
+
+eq3 sentinels: 
+zekken us
+Tarik us
+zellsis us
+bang us
+johnqt morocco
+
+-----------------------------------
+GAME 3 lol 
+
+eq1: T1
+faker south korea
+gumayusi south korea
+keria south korea
+oner south korea
+donar south korea
+
+eq2:G2 Esports
+caps Denmark
+brokenblade Germany
+skewmond France
+hans sama France
+labrov Greece 
+
+eq3: Anyones Legend
+shanks china
+flandre china
+tarzan south korea
+hope china
+kael south korea
+
+-----------------------------------------
+
+GAME 4 CS
+
+eq1: FUT Esports
+ScreaM Belgium 
+dem0n Ukraine
+cmtry Ukraine
+krabeni Kosovo
+dziugss lithuania
+
+eq2:team spirit
+donk Russia
+sh1ro Russia
+zont1x ukraine
+chopper Russia
+zweih Russia
+
+eq3:Aurora
+XANTARES turkey 
+woxic turkey
+wicadia turkey
+MAJ3R turkey
+jottAAA turkey
+
+
+
+

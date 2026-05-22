@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book & Order | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tabs { display:flex; gap:10px; margin-bottom:30px; }
+        .tab-btn { padding:10px 24px; border:2px solid cyan; background:transparent; color:cyan; font-weight:bold; border-radius:5px; cursor:pointer; font-size:0.95rem; transition:all 0.2s; }
+        .tab-btn.active, .tab-btn:hover { background:cyan; color:black; }
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+
+        .tournament-card { background:#1e1e1e; border-radius:8px; padding:24px; border-left:4px solid cyan; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+        .tournament-card h3 { margin:0 0 6px 0; }
+        .tournament-card p { color:#aaa; margin:0; font-size:0.9rem; }
+        .price-tag { font-size:1.4rem; color:cyan; font-weight:bold; }
+        .spots-left { font-size:0.8rem; color:#ffaa00; margin-top:4px; }
+
+        .shop-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px; margin-bottom:30px; }
+        .shop-card { background:#1e1e1e; border-radius:8px; padding:20px; text-align:center; border:1px solid #333; transition:border-color 0.2s; display:flex; flex-direction:column; }
+        .shop-card:hover { border-color:cyan; }
+        .shop-card img { width:100%; height:140px; object-fit:cover; border-radius:6px; margin-bottom:12px; }
+        .shop-card h3 { font-size:0.95rem; margin-bottom:4px; }
+        .shop-card .shop-cat { color:#888; font-size:0.75rem; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em; }
+        .shop-card .shop-price { color:cyan; font-size:1.2rem; font-weight:bold; margin:8px 0; }
+        .shop-card .shop-stock { font-size:0.8rem; color:#ffaa00; margin-bottom:8px; }
+        .shop-card .qty-row { display:flex; align-items:center; justify-content:center; gap:8px; margin:8px 0; }
+        .shop-card input[type="number"] { width:70px; text-align:center; }
+        .shop-card .btn { margin-top:auto; }
+
+        .form-section { background:#1e1e1e; padding:28px; border-radius:8px; max-width:600px; }
+        .form-section h3 { margin-bottom:20px; }
+
+        .success-msg { display:none; background:#00ff8815; border:1px solid #00ff88; color:#00ff88; padding:16px 20px; border-radius:8px; margin-bottom:20px; }
+        .error-msg { display:none; background:#ff4d4d15; border:1px solid #ff4d4d; color:#ff4d4d; padding:16px 20px; border-radius:8px; margin-bottom:20px; }
+
+        .loading-msg { color:#aaa; font-style:italic; padding:20px 0; }
+        .db-badge { display:inline-flex; align-items:center; gap:6px; background:#00ff8820; color:#00ff88; border:1px solid #00ff8840; border-radius:20px; padding:4px 12px; font-size:0.78rem; margin-bottom:20px; }
+        .db-badge.error { background:#ff4d4d20; color:#ff4d4d; border-color:#ff4d4d40; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">NEXUS</div>
+            <div class="logo-sub">Esports Hub</div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-label">Navigation</div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fa-solid fa-house"></i> Home</a></li>
+            </ul>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <div class="nav-section-label">Esports</div>
+            <ul class="nav-links">
+                <li><a href="games.html"><i class="fa-solid fa-gamepad"></i> Games</a></li>
+                <li><a href="teams.html"><i class="fa-solid fa-users"></i> Teams</a></li>
+                <li><a href="tournaments.html"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+                <li><a href="highlights.html"><i class="fa-solid fa-film"></i> Highlights</a></li>
+            </ul>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <div class="nav-section-label">Account</div>
+            <ul class="nav-links">
+                <li><a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Login / Register</a></li>
+                <li><a href="profile.html"><i class="fa-solid fa-circle-user"></i> My Profile</a></li>
+                <li><a href="booking.html" class="active"><i class="fa-solid fa-ticket"></i> Book / Order</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-footer">&copy; 2026 NEXUS ESPORTS</div>
+    </nav>
+
+    <main>
+        <h1><i class="fa-solid fa-ticket"></i> Book & Order</h1>
+        <p>Reserve your spot in upcoming tournaments or grab official NEXUS merchandise.</p>
+
+        <div id="dbStatus"></div>
+
+        <div class="tabs" style="margin-top:24px;">
+            <button class="tab-btn active" onclick="switchTab('reservations', this)"><i class="fa-solid fa-trophy"></i> Tournament Reservations</button>
+            <button class="tab-btn" onclick="switchTab('shop', this)"><i class="fa-solid fa-bag-shopping"></i> Merch Shop</button>
+        </div>
+
+        <!-- RESERVATIONS TAB -->
+        <div id="tab-reservations" class="tab-panel active">
+            <div id="resSuccess" class="success-msg">
+                <i class="fa-solid fa-circle-check"></i> <strong>Reservation confirmed!</strong> Check your <a href="profile.html" style="color:#00ff88;">account page</a> to view your bookings.
+            </div>
+            <div id="resError" class="error-msg"></div>
+
+            <h2 style="margin-bottom:20px;">Available Tournaments</h2>
+
+            <!-- Static tournaments — always available -->
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> MSI 2026 — League of Legends</h3>
+                    <p><i class="fa-solid fa-calendar"></i> March 15–28, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> London, UK</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 8 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$49</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('MSI 2026 — League of Legends','League of Legends','$49')">Reserve Now</button>
+                </div>
+            </div>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> Valorant Masters Tokyo</h3>
+                    <p><i class="fa-solid fa-calendar"></i> April 5–20, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> Tokyo, Japan</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 15 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$39</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('Valorant Masters Tokyo','Valorant','$39')">Reserve Now</button>
+                </div>
+            </div>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> CS Major 2026</h3>
+                    <p><i class="fa-solid fa-calendar"></i> May 10–25, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> Copenhagen, Denmark</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 3 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$59</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('CS Major 2026','Counter-Strike','$59')">Reserve Now</button>
+                </div>
+            </div>
+
+            <div class="tournament-card">
+                <div>
+                    <h3><i class="fa-solid fa-trophy" style="color:gold;"></i> Fortnite World Cup Qualifier</h3>
+                    <p><i class="fa-solid fa-calendar"></i> June 1–7, 2026 &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> New York, USA</p>
+                    <p class="spots-left"><i class="fa-solid fa-fire"></i> 22 spots remaining</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="price-tag">$29</div>
+                    <button class="btn" style="margin-top:8px;" onclick="selectTournament('Fortnite World Cup Qualifier','Fortnite','$29')">Reserve Now</button>
+                </div>
+            </div>
+
+            <!-- Reservation form -->
+            <div id="resFormWrapper" style="display:none;margin-top:30px;">
+                <div class="form-section">
+                    <h3 id="resFormTitle">Complete Your Reservation</h3>
+                    <label for="resName">Full Name :</label>
+                    <input type="text" id="resName" placeholder="Your name" required>
+
+                    <label for="resEmail">Email :</label>
+                    <input type="email" id="resEmail" placeholder="example@domain.com" required>
+
+                    <label for="resTeam">Team Name (optional) :</label>
+                    <input type="text" id="resTeam" placeholder="Solo or team name">
+
+                    <label for="resGame">Game :</label>
+                    <select id="resGame">
+                        <option>League of Legends</option>
+                        <option>Valorant</option>
+                        <option>Counter-Strike</option>
+                        <option>Fortnite</option>
+                    </select>
+
+                    <label for="resPayment">Payment Method :</label>
+                    <select id="resPayment">
+                        <option>Credit Card</option>
+                        <option>PayPal</option>
+                        <option>Crypto</option>
+                    </select>
+
+                    <label for="resNotes">Special Requests :</label>
+                    <textarea id="resNotes" rows="3" placeholder="Any requests or notes..."></textarea>
+
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn" id="resSubmitBtn" onclick="submitReservation()">Confirm Reservation</button>
+                        <button onclick="cancelResForm()" style="background:#333;color:#aaa;border:none;padding:10px 16px;border-radius:5px;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOP TAB -->
+        <div id="tab-shop" class="tab-panel">
+            <div id="shopSuccess" class="success-msg">
+                <i class="fa-solid fa-circle-check"></i> <strong>Order placed!</strong> Check your <a href="profile.html" style="color:#00ff88;">account page</a> to track your orders.
+            </div>
+            <div id="shopError" class="error-msg"></div>
+
+            <h2 style="margin-bottom:20px;">Official NEXUS Merch</h2>
+            <div id="shopGrid" class="shop-grid">
+                <p class="loading-msg"><i class="fa-solid fa-spinner fa-spin"></i> Loading products from database…</p>
+            </div>
+
+            <!-- Cart -->
+            <div id="cartSection" style="display:none;">
+                <div class="form-section">
+                    <h3><i class="fa-solid fa-cart-shopping"></i> Your Cart</h3>
+                    <div id="cartItems"></div>
+                    <div style="border-top:1px solid #444;margin-top:12px;padding-top:12px;">
+                        <strong style="color:cyan;font-size:1.2rem;">Total: $<span id="cartTotal">0.00</span></strong>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <label for="shopEmail">Email for order confirmation :</label>
+                        <input type="email" id="shopEmail" placeholder="example@domain.com" required>
+
+                        <label for="shopAddress">Shipping Address :</label>
+                        <textarea id="shopAddress" rows="3" placeholder="Street, City, Country..."></textarea>
+
+                        <label for="shopPayment">Payment Method :</label>
+                        <select id="shopPayment">
+                            <option>Credit Card</option>
+                            <option>PayPal</option>
+                            <option>Bank Transfer</option>
+                        </select>
+
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                            <button class="btn" id="orderBtn" onclick="placeOrder()">Place Order</button>
+                            <button onclick="clearCart()" style="background:#333;color:#aaa;border:none;padding:10px 16px;border-radius:5px;cursor:pointer;">Clear Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>&copy; 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+    </main>
+
+    <script>
+        const API = 'api/';
+        let selectedTournament = '';
+        let selectedGame = '';
+        let cart = [];
+        let products = []; // DB products cache
+
+        // ── Tab switching ──────────────────────────────────────────
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            btn.classList.add('active');
+            if (tab === 'shop' && products.length === 0) loadProducts();
+        }
+
+        // ── DB status badge ────────────────────────────────────────
+        function showDbBadge(ok, msg) {
+            document.getElementById('dbStatus').innerHTML =
+                `<div class="db-badge${ok ? '' : ' error'}">
+                    <i class="fa-solid fa-${ok ? 'database' : 'triangle-exclamation'}"></i> ${msg}
+                </div>`;
+        }
+
+        // ── Pre-fill user info ─────────────────────────────────────
+        window.onload = () => {
+            const user = JSON.parse(localStorage.getItem('nexus_currentUser') || '{}');
+            if (user.email) {
+                document.getElementById('resEmail').value = user.email;
+                document.getElementById('shopEmail').value = user.email;
+                document.getElementById('resName').value = user.username || '';
+            }
+            loadProducts();
+        };
+
+        // ── Load products from DB ──────────────────────────────────
+        async function loadProducts() {
+            try {
+                const res = await fetch(API + 'user_products.php');
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Failed to load products');
+                products = data.data;
+                renderProducts();
+                showDbBadge(true, `Connected to database — ${products.length} products loaded`);
+            } catch (err) {
+                document.getElementById('shopGrid').innerHTML =
+                    `<p style="color:#ff4d4d;"><i class="fa-solid fa-triangle-exclamation"></i> Could not load products: ${err.message}</p>`;
+                showDbBadge(false, 'Database connection failed — check your PHP server');
+            }
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('shopGrid');
+            if (!products.length) {
+                grid.innerHTML = '<p style="color:#aaa;">No products available right now.</p>';
+                return;
+            }
+            grid.innerHTML = products.map(p => `
+                <div class="shop-card">
+                    <img src="${p.image_url || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400'}"
+                         alt="${p.name}" onerror="this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400'">
+                    <div class="shop-cat">${p.category}</div>
+                    <h3>${p.name}</h3>
+                    <div class="shop-price">$${parseFloat(p.price).toFixed(2)}</div>
+                    <div class="shop-stock"><i class="fa-solid fa-box"></i> ${p.stock} in stock</div>
+                    <div class="qty-row">
+                        <label style="color:#aaa;font-size:0.85rem;">Qty:</label>
+                        <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}">
+                    </div>
+                    <button class="btn" style="width:100%;"
+                        onclick="addToCart(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.price}, 'qty-${p.id}', ${p.stock})">
+                        <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // ── Tournament reservation ─────────────────────────────────
+        function selectTournament(name, game, price) {
+            selectedTournament = name;
+            selectedGame = game;
+            document.getElementById('resFormTitle').textContent = `Reserve: ${name} — ${price}`;
+            document.getElementById('resGame').value = game;
+            document.getElementById('resFormWrapper').style.display = 'block';
+            document.getElementById('resFormWrapper').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelResForm() {
+            document.getElementById('resFormWrapper').style.display = 'none';
+        }
+
+        async function submitReservation() {
+            const name  = document.getElementById('resName').value.trim();
+            const email = document.getElementById('resEmail').value.trim();
+            const team  = document.getElementById('resTeam').value.trim() || 'Solo';
+            const game  = document.getElementById('resGame').value;
+
+            if (!name || !email) { alert('Please fill in your name and email.'); return; }
+
+            const btn = document.getElementById('resSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+
+            try {
+                const res = await fetch(API + 'user_bookings.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, tournament: selectedTournament, game, team })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Booking failed');
+
+                document.getElementById('resFormWrapper').style.display = 'none';
+                showMsg('resSuccess', true);
+            } catch (err) {
+                showMsg('resError', false, 'Booking failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm Reservation';
+            }
+        }
+
+        // ── Cart ───────────────────────────────────────────────────
+        function addToCart(productId, item, price, qtyId, maxStock) {
+            const qty = parseInt(document.getElementById(qtyId).value) || 1;
+            const existing = cart.find(c => c.product_id === productId);
+            if (existing) {
+                const newQty = existing.qty + qty;
+                if (newQty > maxStock) { alert(`Only ${maxStock} in stock.`); return; }
+                existing.qty = newQty;
+            } else {
+                cart.push({ product_id: productId, item, price: parseFloat(price), qty });
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            if (cart.length === 0) {
+                document.getElementById('cartSection').style.display = 'none';
+                return;
+            }
+            document.getElementById('cartSection').style.display = 'block';
+            const items = cart.map((c, i) => `
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #333;">
+                    <span>${c.item} × ${c.qty}</span>
+                    <span style="color:cyan;">$${(c.price * c.qty).toFixed(2)}
+                        <span onclick="removeFromCart(${i})" style="color:#ff4d4d;cursor:pointer;margin-left:10px;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </span>
+                    </span>
+                </div>
+            `).join('');
+            document.getElementById('cartItems').innerHTML = items;
+            const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+            document.getElementById('cartTotal').textContent = total.toFixed(2);
+            document.getElementById('cartSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function removeFromCart(i) { cart.splice(i, 1); renderCart(); }
+        function clearCart() { cart = []; renderCart(); }
+
+        async function placeOrder() {
+            const email   = document.getElementById('shopEmail').value.trim();
+            const address = document.getElementById('shopAddress').value.trim();
+            if (!email || !address) { alert('Please fill in email and shipping address.'); return; }
+            if (cart.length === 0) { alert('Your cart is empty!'); return; }
+
+            const btn = document.getElementById('orderBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing…';
+
+            try {
+                const res = await fetch(API + 'user_orders.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, items: cart })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Order failed');
+
+                if (data.errors && data.errors.length) {
+                    showMsg('shopError', false, 'Some items could not be ordered: ' + data.errors.join(', '));
+                }
+
+                clearCart();
+                showMsg('shopSuccess', true);
+                // Refresh stock counts
+                await loadProducts();
+            } catch (err) {
+                showMsg('shopError', false, 'Order failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Place Order';
+            }
+        }
+
+        // ── Helpers ────────────────────────────────────────────────
+        function showMsg(id, success, text) {
+            const el = document.getElementById(id);
+            if (text) el.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${text}`;
+            el.style.display = 'block';
+            el.scrollIntoView({ behavior: 'smooth' });
+            if (success) setTimeout(() => el.style.display = 'none', 6000);
+        }
+    </script>
+</body>
+</html>

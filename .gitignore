@@ -1,0 +1,14 @@
+# Ignore OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore local config overrides (don't expose DB credentials)
+db.php
+
+# Ignore IDE folders
+.vscode/
+.idea/
+
+# Ignore node_modules if ever added
+node_modules/

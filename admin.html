@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-nav {
+            width: 250px; height: 100vh; position: fixed; left: 0; top: 0;
+            background: #050505; padding: 20px; border-right: 1px solid #ff440020;
+        }
+        .admin-nav .logo { color: #ff4400; }
+        .admin-nav .nav-links a { color: #aaa; }
+        .admin-nav .nav-links a.active { background: #ff440020; color: #ff4400; }
+        .admin-tabs { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+        .admin-tab-btn {
+            padding: 9px 18px; border: 1px solid #ff4400; background: transparent;
+            color: #ff4400; border-radius: 5px; cursor: pointer; font-size: 0.85rem;
+            font-weight: bold; transition: all 0.2s;
+        }
+        .admin-tab-btn.active, .admin-tab-btn:hover { background: #ff4400; color: white; }
+        .admin-panel { display: none; }
+        .admin-panel.active { display: block; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: #1e1e1e; padding: 20px; border-radius: 8px; text-align: center; border-top: 3px solid #ff4400; }
+        .stat-card .num { font-size: 2rem; color: #ff4400; font-weight: bold; }
+        .stat-card .label { color: #aaa; font-size: 0.8rem; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; background: #1e1e1e; border-radius: 8px; overflow: hidden; }
+        th { background: #ff440020; color: #ff4400; padding: 12px 16px; text-align: left; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 10px 16px; border-bottom: 1px solid #2a2a2a; font-size: 0.88rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #252525; }
+        .action-btn { padding: 5px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: bold; margin-right: 4px; }
+        .btn-edit   { background: #0077ff; color: white; }
+        .btn-delete { background: #ff4d4d; color: white; }
+        .btn-save   { background: #00aa55; color: white; }
+        .admin-form { background: #1e1e1e; padding: 24px; border-radius: 8px; max-width: 620px; margin-top: 24px; }
+        .admin-form h3 { margin-bottom: 18px; color: #ff4400; }
+        .admin-form label { display: block; margin-bottom: 4px; color: #aaa; font-size: 0.85rem; margin-top: 12px; }
+        .admin-form input, .admin-form select, .admin-form textarea {
+            width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #444;
+            background: #222; color: white; box-sizing: border-box;
+        }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+        .search-bar input { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #222; color: white; }
+        .bar-chart { margin-top: 16px; }
+        .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .bar-label { width: 160px; color: #aaa; font-size: 0.85rem; flex-shrink: 0; }
+        .bar-track { flex: 1; background: #2a2a2a; border-radius: 10px; height: 22px; }
+        .bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #ff4400, #ff8800); }
+        .bar-val { width: 40px; text-align: right; color: #ff4400; font-weight: bold; font-size: 0.9rem; }
+        .badge-status { padding: 3px 9px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .s-active    { background:#00ff8830; color:#00ff88; }
+        .s-pending   { background:#ffaa0030; color:#ffaa00; }
+        .s-banned    { background:#ff4d4d30; color:#ff4d4d; }
+        .s-processing{ background:#ffaa0030; color:#ffaa00; }
+        .s-shipped   { background:#0077ff30; color:#66aaff; }
+        .s-delivered { background:#00ff8830; color:#00ff88; }
+        .s-cancelled { background:#ff4d4d30; color:#ff4d4d; }
+        .toast { position:fixed; bottom:24px; right:24px; background:#1e1e1e; color:white; padding:14px 22px; border-radius:8px; border-left:4px solid #00ff88; z-index:9999; font-size:0.9rem; box-shadow:0 4px 20px #0008; display:none; }
+        .toast.err { border-color:#ff4d4d; }
+        .modal-bg { display:none; position:fixed; inset:0; background:#000a; z-index:1000; align-items:center; justify-content:center; }
+        .modal-bg.open { display:flex; }
+        .modal { background:#1a1a1a; border:1px solid #ff440040; border-radius:10px; padding:28px; width:560px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+        .modal h3 { color:#ff4400; margin-bottom:18px; }
+        .modal label { display:block; margin-top:12px; margin-bottom:4px; color:#aaa; font-size:0.85rem; }
+        .modal input, .modal select, .modal textarea { width:100%; padding:10px; border-radius:5px; border:1px solid #444; background:#222; color:white; box-sizing:border-box; }
+        .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+        .spinner { display:inline-block; width:16px; height:16px; border:2px solid #ff4400; border-top-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+    </style>
+</head>
+<body>
+<nav class="sidebar admin-nav">
+    <div class="logo"><i class="fa-solid fa-shield-halved"></i> ADMIN</div>
+    <ul class="nav-links">
+        <li><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to Site</a></li>
+        <li><a href="admin.html" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+    </ul>
+</nav>
+
+<main id="adminMain" style="margin-left:270px;padding:30px;"></main>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+    <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+const API = 'api/';
+let currentTab = 'clients';
+
+/* ───── TOAST ───── */
+function toast(msg, err=false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast' + (err?' err':'');
+    el.style.display = 'block';
+    setTimeout(()=>el.style.display='none', 3000);
+}
+
+/* ───── MODAL ───── */
+function openModal(html) {
+    document.getElementById('modalContent').innerHTML = html;
+    document.getElementById('modalBg').classList.add('open');
+}
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+document.getElementById('modalBg').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+/* ───── API helpers ───── */
+async function api(endpoint, method='GET', body=null) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + endpoint, opts);
+    return r.json();
+}
+
+/* ───── AUTH ───── */
+const SESSION_KEY = 'nexus_admin_session';
+
+function checkAuth() {
+    const s = sessionStorage.getItem(SESSION_KEY);
+    if (!s) { renderLogin(); return false; }
+    return true;
+}
+
+function renderLogin() {
+    document.getElementById('adminMain').innerHTML = `
+        <div style="max-width:420px;margin:60px auto;">
+            <h1 style="color:#ff4400;text-align:center;margin-bottom:8px;"><i class="fa-solid fa-shield-halved"></i> NEXUS Admin</h1>
+            <p style="color:#aaa;text-align:center;margin-bottom:28px;">Restricted area — admin credentials required.</p>
+            <div style="background:#1e1e1e;padding:28px;border-radius:10px;border:1px solid #ff440030;">
+                <label style="color:#aaa;">Email or Username</label>
+                <input id="aUser" type="text" placeholder="admin@nexus.gg" style="width:100%;padding:10px;background:#111;border:1px solid #444;border-radius:5px;color:white;margin:8px 0 16px;box-sizing:border-box;">
+                <label style="color:#aaa;">Password</label>
+                <input id="aPass" type="password" placeholder="password" style="width:100%;padding:10px;background:#111;border:1px solid #444;border-radius:5px;color:white;margin:8px 0 16px;box-sizing:border-box;">
+                <div id="loginErr" style="display:none;color:#ff4d4d;margin-bottom:12px;padding:10px;background:#ff4d4d10;border-left:3px solid #ff4d4d;border-radius:4px;font-size:0.9rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Invalid credentials.
+                </div>
+                <button onclick="doLogin()" style="width:100%;padding:12px;background:#ff4400;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;font-size:1rem;">
+                    Login as Admin
+                </button>
+            </div>
+        </div>`;
+    document.getElementById('aPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+}
+
+async function doLogin() {
+    const user = document.getElementById('aUser').value.trim();
+    const pass = document.getElementById('aPass').value;
+    const r = await api('admin_login.php','POST',{username:user, password:pass});
+    if (r.success) {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({username: r.username}));
+        renderDashboard();
+    } else {
+        document.getElementById('loginErr').style.display = 'block';
+    }
+}
+
+function adminLogout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    renderLogin();
+}
+
+/* ───── DASHBOARD ───── */
+async function renderDashboard() {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY)||'{}');
+    document.getElementById('adminMain').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+            <h1><i class="fa-solid fa-gauge" style="color:#ff4400;"></i> Admin Dashboard</h1>
+            <div style="display:flex;align-items:center;gap:16px;">
+                <span style="color:#aaa;font-size:0.9rem;"><i class="fa-solid fa-user"></i> ${s.username||'Admin'}</span>
+                <button onclick="adminLogout()" style="background:transparent;border:1px solid #ff4d4d;color:#ff4d4d;padding:8px 18px;border-radius:5px;cursor:pointer;font-weight:bold;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </div>
+        <div class="stat-grid" id="statGrid"><div class="spinner"></div></div>
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" onclick="switchTab('clients',this)"><i class="fa-solid fa-users"></i> Users</button>
+            <button class="admin-tab-btn" onclick="switchTab('products',this)"><i class="fa-solid fa-box"></i> Products</button>
+            <button class="admin-tab-btn" onclick="switchTab('bookings',this)"><i class="fa-solid fa-ticket"></i> Bookings</button>
+            <button class="admin-tab-btn" onclick="switchTab('orders',this)"><i class="fa-solid fa-bag-shopping"></i> Orders</button>
+            <button class="admin-tab-btn" onclick="switchTab('stats',this)"><i class="fa-solid fa-chart-bar"></i> Statistics</button>
+        </div>
+        <div id="tabContent"></div>
+        <footer style="margin-top:40px;color:#555;font-size:0.8rem;">&copy; 2026 NEXUS ESPORTS Admin Panel.</footer>`;
+    loadStats();
+    loadTab('clients');
+}
+
+async function loadStats() {
+    const r = await api('admin_stats.php');
+    if (!r.success) return;
+    const d = r.data;
+    document.getElementById('statGrid').innerHTML = `
+        <div class="stat-card"><div class="num">${d.total_users}</div><div class="label">Users</div></div>
+        <div class="stat-card"><div class="num">${d.total_bookings}</div><div class="label">Bookings</div></div>
+        <div class="stat-card"><div class="num">${d.total_orders}</div><div class="label">Orders</div></div>
+        <div class="stat-card"><div class="num">$${parseFloat(d.total_revenue).toFixed(2)}</div><div class="label">Revenue</div></div>
+        <div class="stat-card"><div class="num">${d.total_products}</div><div class="label">Products</div></div>`;
+}
+
+function switchTab(tab, btn) {
+    document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = tab;
+    loadTab(tab);
+}
+
+function loadTab(tab) {
+    const el = document.getElementById('tabContent');
+    el.innerHTML = '<div style="padding:40px;text-align:center;"><span class="spinner"></span></div>';
+    if (tab==='clients')  loadUsers();
+    if (tab==='products') loadProducts();
+    if (tab==='bookings') loadBookings();
+    if (tab==='orders')   loadOrders();
+    if (tab==='stats')    loadStatsTab();
+}
+
+/* ───── USERS ───── */
+async function loadUsers() {
+    const r = await api('admin_users.php');
+    if (!r.success) { document.getElementById('tabContent').innerHTML='<p style="color:#ff4d4d;">Failed to load users.</p>'; return; }
+    const rows = r.data.map(u=>`
+        <tr>
+            <td>${u.id}</td>
+            <td><strong>${u.username}</strong></td>
+            <td>${u.email}</td>
+            <td>${u.country||'—'}</td>
+            <td>${u.skill_level||0}/100</td>
+            <td><span class="badge-status s-${u.status}">${u.status}</span></td>
+            <td><span style="font-size:0.8rem;color:#aaa;">${u.role}</span></td>
+            <td>
+                <button class="action-btn btn-edit" onclick="editUser(${JSON.stringify(u).replace(/"/g,'&quot;')})"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+    document.getElementById('tabContent').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div class="search-bar" style="margin:0;flex:1;min-width:200px;">
+                <input type="text" placeholder="Search users…" oninput="filterRows(this,'userTbl')">
+            </div>
+            <button class="btn" style="background:#ff4400;" onclick="addUserModal()"><i class="fa-solid fa-plus"></i> Add User</button>
+        </div>
+        <table><thead><tr><th>#</th><th>Username</th><th>Email</th><th>Country</th><th>Skill</th><th>Status</th><th>Role</th><th>Actions</th></tr></thead>
+        <tbody id="userTbl">${rows||'<tr><td colspan="8" style="text-align:center;color:#aaa;">No users found.</td></tr>'}</tbody></table>`;
+}
+
+function addUserModal() {
+    openModal(`
+        <h3><i class="fa-solid fa-user-plus"></i> Add User</h3>
+        <label>Username *</label><input id="mu_username" placeholder="ProGamer99">
+        <label>Email *</label><input id="mu_email" type="email" placeholder="user@nexus.gg">
+        <label>Password *</label><input id="mu_password" type="password" placeholder="••••••••">
+        <label>Country</label><input id="mu_country" placeholder="TN">
+        <label>Skill Level (0-100)</label><input id="mu_skill" type="number" min="0" max="100" value="0">
+        <label>Role</label><select id="mu_role"><option value="user">User</option><option value="admin">Admin</option></select>
+        <label>Status</label><select id="mu_status"><option value="active">Active</option><option value="pending">Pending</option><option value="banned">Banned</option></select>
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveUser(null)">Save</button>
+        </div>`);
+}
+
+function editUser(u) {
+    openModal(`
+        <h3><i class="fa-solid fa-pen"></i> Edit User — ${u.username}</h3>
+        <label>Username</label><input id="mu_username" value="${u.username}">
+        <label>Email</label><input id="mu_email" type="email" value="${u.email}">
+        <label>New Password (leave blank to keep)</label><input id="mu_password" type="password" placeholder="••••••••">
+        <label>Country</label><input id="mu_country" value="${u.country||''}">
+        <label>Skill Level</label><input id="mu_skill" type="number" min="0" max="100" value="${u.skill_level||0}">
+        <label>Role</label><select id="mu_role"><option value="user"${u.role==='user'?' selected':''}>User</option><option value="admin"${u.role==='admin'?' selected':''}>Admin</option></select>
+        <label>Status</label><select id="mu_status">
+            <option value="active"${u.status==='active'?' selected':''}>Active</option>
+            <option value="pending"${u.status==='pending'?' selected':''}>Pending</option>
+            <option value="banned"${u.status==='banned'?' selected':''}>Banned</option>
+        </select>
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveUser(${u.id})">Update</button>
+        </div>`);
+}
+
+async function saveUser(id) {
+    const body = {
+        username:    document.getElementById('mu_username').value.trim(),
+        email:       document.getElementById('mu_email').value.trim(),
+        country:     document.getElementById('mu_country').value.trim(),
+        skill_level: parseInt(document.getElementById('mu_skill').value)||0,
+        role:        document.getElementById('mu_role').value,
+        status:      document.getElementById('mu_status').value,
+    };
+    const pw = document.getElementById('mu_password').value;
+    if (pw) body.password = pw;
+    if (!body.username || !body.email) { toast('Username and email required', true); return; }
+    if (!id && !pw) { toast('Password required for new user', true); return; }
+    const r = await api(id ? `admin_users.php?id=${id}` : 'admin_users.php', id?'PUT':'POST', body);
+    if (r.success) { toast(id?'User updated!':'User created!'); closeModal(); loadUsers(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+async function deleteUser(id) {
+    if (!confirm('Delete this user?')) return;
+    const r = await api(`admin_users.php?id=${id}`,'DELETE');
+    if (r.success) { toast('User deleted.'); loadUsers(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+/* ───── PRODUCTS ───── */
+async function loadProducts() {
+    const r = await api('admin_products.php');
+    if (!r.success) { document.getElementById('tabContent').innerHTML='<p style="color:#ff4d4d;">Failed to load products.</p>'; return; }
+    const rows = r.data.map(p=>`
+        <tr>
+            <td>${p.id}</td>
+            <td>${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">` : '📦'}</td>
+            <td><strong>${p.name}</strong></td>
+            <td>${p.category}</td>
+            <td style="color:cyan;">$${parseFloat(p.price).toFixed(2)}</td>
+            <td>${p.stock}</td>
+            <td>
+                <button class="action-btn btn-edit" onclick="editProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+    document.getElementById('tabContent').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div class="search-bar" style="margin:0;flex:1;min-width:200px;">
+                <input type="text" placeholder="Search products…" oninput="filterRows(this,'prodTbl')">
+            </div>
+            <button class="btn" style="background:#ff4400;" onclick="addProductModal()"><i class="fa-solid fa-plus"></i> Add Product</button>
+        </div>
+        <table><thead><tr><th>#</th><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+        <tbody id="prodTbl">${rows||'<tr><td colspan="7" style="text-align:center;color:#aaa;">No products.</td></tr>'}</tbody></table>`;
+}
+
+function addProductModal() {
+    openModal(`
+        <h3><i class="fa-solid fa-box"></i> Add Product</h3>
+        <label>Name *</label><input id="mp_name" placeholder="NEXUS Jersey">
+        <label>Category</label>
+        <select id="mp_cat"><option>Apparel</option><option>Hardware</option><option>Passes</option><option>Accessories</option></select>
+        <label>Price ($)</label><input id="mp_price" type="number" step="0.01" min="0" placeholder="29.99">
+        <label>Stock</label><input id="mp_stock" type="number" min="0" placeholder="100">
+        <label>Image URL (optional)</label><input id="mp_img" placeholder="https://...">
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveProduct(null)">Save</button>
+        </div>`);
+}
+
+function editProduct(p) {
+    openModal(`
+        <h3><i class="fa-solid fa-pen"></i> Edit Product — ${p.name}</h3>
+        <label>Name</label><input id="mp_name" value="${p.name}">
+        <label>Category</label>
+        <select id="mp_cat">
+            ${['Apparel','Hardware','Passes','Accessories'].map(c=>`<option${c===p.category?' selected':''}>${c}</option>`).join('')}
+        </select>
+        <label>Price ($)</label><input id="mp_price" type="number" step="0.01" min="0" value="${p.price}">
+        <label>Stock</label><input id="mp_stock" type="number" min="0" value="${p.stock}">
+        <label>Image URL</label><input id="mp_img" value="${p.image_url||''}">
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveProduct(${p.id})">Update</button>
+        </div>`);
+}
+
+async function saveProduct(id) {
+    const body = {
+        name:      document.getElementById('mp_name').value.trim(),
+        category:  document.getElementById('mp_cat').value,
+        price:     parseFloat(document.getElementById('mp_price').value)||0,
+        stock:     parseInt(document.getElementById('mp_stock').value)||0,
+        image_url: document.getElementById('mp_img').value.trim(),
+    };
+    if (!body.name) { toast('Name required', true); return; }
+    const r = await api(id?`admin_products.php?id=${id}`:'admin_products.php', id?'PUT':'POST', body);
+    if (r.success) { toast(id?'Product updated!':'Product created!'); closeModal(); loadProducts(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+async function deleteProduct(id) {
+    if (!confirm('Delete this product?')) return;
+    const r = await api(`admin_products.php?id=${id}`,'DELETE');
+    if (r.success) { toast('Product deleted.'); loadProducts(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+/* ───── BOOKINGS ───── */
+async function loadBookings() {
+    const r = await api('admin_bookings.php');
+    if (!r.success) { document.getElementById('tabContent').innerHTML='<p style="color:#ff4d4d;">Failed to load bookings.</p>'; return; }
+    const rows = r.data.map(b=>`
+        <tr>
+            <td>${b.id}</td>
+            <td><strong>${b.name}</strong>${b.username?`<br><span style="color:#aaa;font-size:0.78rem;">@${b.username}</span>`:''}</td>
+            <td>${b.email}</td>
+            <td>${b.tournament||'—'}</td>
+            <td>${b.game||'—'}</td>
+            <td>${b.team||'—'}</td>
+            <td style="font-size:0.8rem;color:#aaa;">${b.booked_at?.slice(0,10)||'—'}</td>
+            <td>
+                <button class="action-btn btn-edit" onclick="editBooking(${JSON.stringify(b).replace(/"/g,'&quot;')})"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteBooking(${b.id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+    document.getElementById('tabContent').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div class="search-bar" style="margin:0;flex:1;min-width:200px;">
+                <input type="text" placeholder="Search bookings…" oninput="filterRows(this,'bkTbl')">
+            </div>
+            <button class="btn" style="background:#ff4400;" onclick="addBookingModal()"><i class="fa-solid fa-plus"></i> Add Booking</button>
+        </div>
+        <table><thead><tr><th>#</th><th>Player</th><th>Email</th><th>Tournament</th><th>Game</th><th>Team</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="bkTbl">${rows||'<tr><td colspan="8" style="text-align:center;color:#aaa;">No bookings.</td></tr>'}</tbody></table>`;
+}
+
+function addBookingModal() {
+    openModal(`
+        <h3><i class="fa-solid fa-ticket"></i> Add Booking</h3>
+        <label>Name *</label><input id="mb_name" placeholder="Player name">
+        <label>Email *</label><input id="mb_email" type="email" placeholder="player@nexus.gg">
+        <label>Tournament</label><input id="mb_tournament" placeholder="Valorant Masters Tokyo">
+        <label>Game</label><input id="mb_game" placeholder="Valorant">
+        <label>Team</label><input id="mb_team" placeholder="Alpha Squad">
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveBooking(null)">Save</button>
+        </div>`);
+}
+
+function editBooking(b) {
+    openModal(`
+        <h3><i class="fa-solid fa-pen"></i> Edit Booking #${b.id}</h3>
+        <label>Name</label><input id="mb_name" value="${b.name}">
+        <label>Email</label><input id="mb_email" type="email" value="${b.email}">
+        <label>Tournament</label><input id="mb_tournament" value="${b.tournament||''}">
+        <label>Game</label><input id="mb_game" value="${b.game||''}">
+        <label>Team</label><input id="mb_team" value="${b.team||''}">
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveBooking(${b.id})">Update</button>
+        </div>`);
+}
+
+async function saveBooking(id) {
+    const body = {
+        name:       document.getElementById('mb_name').value.trim(),
+        email:      document.getElementById('mb_email').value.trim(),
+        tournament: document.getElementById('mb_tournament').value.trim(),
+        game:       document.getElementById('mb_game').value.trim(),
+        team:       document.getElementById('mb_team').value.trim(),
+    };
+    if (!body.name||!body.email) { toast('Name and email required', true); return; }
+    const r = await api(id?`admin_bookings.php?id=${id}`:'admin_bookings.php', id?'PUT':'POST', body);
+    if (r.success) { toast(id?'Booking updated!':'Booking created!'); closeModal(); loadBookings(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+async function deleteBooking(id) {
+    if (!confirm('Delete this booking?')) return;
+    const r = await api(`admin_bookings.php?id=${id}`,'DELETE');
+    if (r.success) { toast('Booking deleted.'); loadBookings(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+/* ───── ORDERS ───── */
+async function loadOrders() {
+    const r = await api('admin_orders.php');
+    if (!r.success) { document.getElementById('tabContent').innerHTML='<p style="color:#ff4d4d;">Failed to load orders.</p>'; return; }
+    const statusColors = {processing:'s-processing',shipped:'s-shipped',delivered:'s-delivered',cancelled:'s-cancelled'};
+    const rows = r.data.map(o=>`
+        <tr>
+            <td>${o.id}</td>
+            <td>${o.user_email}</td>
+            <td><strong>${o.item}</strong></td>
+            <td>${o.qty}</td>
+            <td>$${parseFloat(o.price).toFixed(2)}</td>
+            <td style="color:cyan;">$${(o.price*o.qty).toFixed(2)}</td>
+            <td style="font-size:0.8rem;color:#aaa;">${o.ordered_at?.slice(0,10)||'—'}</td>
+            <td><span class="badge-status ${statusColors[o.status]||'s-processing'}">${o.status}</span></td>
+            <td>
+                <button class="action-btn btn-edit" onclick="editOrder(${JSON.stringify(o).replace(/"/g,'&quot;')})"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn btn-delete" onclick="deleteOrder(${o.id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>`).join('');
+    document.getElementById('tabContent').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div class="search-bar" style="margin:0;flex:1;min-width:200px;">
+                <input type="text" placeholder="Search orders…" oninput="filterRows(this,'ordTbl')">
+            </div>
+            <button class="btn" style="background:#ff4400;" onclick="addOrderModal()"><i class="fa-solid fa-plus"></i> Add Order</button>
+        </div>
+        <table><thead><tr><th>#</th><th>Email</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="ordTbl">${rows||'<tr><td colspan="9" style="text-align:center;color:#aaa;">No orders.</td></tr>'}</tbody></table>`;
+}
+
+function addOrderModal() {
+    openModal(`
+        <h3><i class="fa-solid fa-bag-shopping"></i> Add Order</h3>
+        <label>Customer Email *</label><input id="mo_email" type="email" placeholder="user@nexus.gg">
+        <label>Item Name *</label><input id="mo_item" placeholder="NEXUS Jersey">
+        <label>Quantity</label><input id="mo_qty" type="number" min="1" value="1">
+        <label>Price ($)</label><input id="mo_price" type="number" step="0.01" min="0" placeholder="29.99">
+        <label>Status</label>
+        <select id="mo_status">
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveOrder(null)">Save</button>
+        </div>`);
+}
+
+function editOrder(o) {
+    openModal(`
+        <h3><i class="fa-solid fa-pen"></i> Edit Order #${o.id}</h3>
+        <label>Customer Email</label><input id="mo_email" type="email" value="${o.user_email}">
+        <label>Item Name</label><input id="mo_item" value="${o.item}">
+        <label>Quantity</label><input id="mo_qty" type="number" min="1" value="${o.qty}">
+        <label>Price ($)</label><input id="mo_price" type="number" step="0.01" min="0" value="${o.price}">
+        <label>Status</label>
+        <select id="mo_status">
+            ${['processing','shipped','delivered','cancelled'].map(s=>`<option value="${s}"${s===o.status?' selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select>
+        <div class="modal-actions">
+            <button class="action-btn" style="background:#555;color:white;" onclick="closeModal()">Cancel</button>
+            <button class="action-btn btn-save" onclick="saveOrder(${o.id})">Update</button>
+        </div>`);
+}
+
+async function saveOrder(id) {
+    const body = {
+        user_email: document.getElementById('mo_email').value.trim(),
+        item:       document.getElementById('mo_item').value.trim(),
+        qty:        parseInt(document.getElementById('mo_qty').value)||1,
+        price:      parseFloat(document.getElementById('mo_price').value)||0,
+        status:     document.getElementById('mo_status').value,
+    };
+    if (!body.user_email||!body.item) { toast('Email and item required', true); return; }
+    const r = await api(id?`admin_orders.php?id=${id}`:'admin_orders.php', id?'PUT':'POST', body);
+    if (r.success) { toast(id?'Order updated!':'Order created!'); closeModal(); loadOrders(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+async function deleteOrder(id) {
+    if (!confirm('Delete this order?')) return;
+    const r = await api(`admin_orders.php?id=${id}`,'DELETE');
+    if (r.success) { toast('Order deleted.'); loadOrders(); loadStats(); }
+    else toast(r.error||'Error', true);
+}
+
+/* ───── STATS TAB ───── */
+async function loadStatsTab() {
+    const r = await api('admin_stats.php');
+    if (!r.success) { document.getElementById('tabContent').innerHTML='<p style="color:#ff4d4d;">Failed to load stats.</p>'; return; }
+    const d = r.data;
+
+    function bar(label, val, max) {
+        const pct = max>0 ? Math.round(val/max*100) : 0;
+        return `<div class="bar-row">
+            <div class="bar-label" style="font-size:0.82rem;">${label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+            <div class="bar-val" style="font-size:0.82rem;">${val}</div>
+        </div>`;
+    }
+
+    const maxGame = Math.max(...(d.games||[]).map(g=>g.cnt),1);
+    const gameBars = (d.games||[]).map(g=>bar(g.game,g.cnt,maxGame)).join('') || '<p style="color:#aaa;font-size:0.85rem;">No booking data yet.</p>';
+
+    const maxRev = Math.max(...(d.revenue_by_product||[]).map(p=>p.total),1);
+    const revBars = (d.revenue_by_product||[]).map(p=>`<div class="bar-row">
+        <div class="bar-label" style="font-size:0.78rem;">${p.item}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.total/maxRev*100)}%"></div></div>
+        <div class="bar-val" style="font-size:0.78rem;">$${parseFloat(p.total).toFixed(0)}</div>
+    </div>`).join('') || '<p style="color:#aaa;font-size:0.85rem;">No order data yet.</p>';
+
+    const maxC = Math.max(...(d.users_by_country||[]).map(c=>c.cnt),1);
+    const cBars = (d.users_by_country||[]).map(c=>bar(c.country,c.cnt,maxC)).join('') || '<p style="color:#aaa;font-size:0.85rem;">No country data yet.</p>';
+
+    const maxT = Math.max(...(d.tournaments||[]).map(t=>t.cnt),1);
+    const tBars = (d.tournaments||[]).map(t=>bar(t.tournament,t.cnt,maxT)).join('') || '<p style="color:#aaa;font-size:0.85rem;">No tournament data yet.</p>';
+
+    const statusColors = {processing:'#ffaa00',shipped:'#66aaff',delivered:'#00ff88',cancelled:'#ff4d4d'};
+    const statusBars = (d.orders_by_status||[]).map(s=>`<div class="bar-row">
+        <div class="bar-label" style="font-size:0.82rem;text-transform:capitalize;">${s.status}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.cnt/d.total_orders*100)}%;background:${statusColors[s.status]||'#ff4400'};"></div></div>
+        <div class="bar-val" style="font-size:0.82rem;">${s.cnt}</div>
+    </div>`).join('') || '<p style="color:#aaa;font-size:0.85rem;">No order data yet.</p>';
+
+    const lowStockHtml = (d.low_stock||[]).length > 0
+        ? (d.low_stock||[]).map(p=>`<tr>
+            <td style="color:#eee;padding:6px 4px;">${p.name}</td>
+            <td style="color:${p.stock<=5?'#ff4d4d':'#ffaa00'};font-weight:bold;padding:6px 4px;">${p.stock} left</td>
+          </tr>`).join('')
+        : `<tr><td colspan="2" style="color:#00ff88;padding:8px 4px;">✓ All products well stocked</td></tr>`;
+
+    document.getElementById('tabContent').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
+            <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-gamepad"></i> Games Popularity</h3>
+                <div class="bar-chart">${gameBars}</div>
+            </div>
+            <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-bag-shopping"></i> Top Products Revenue</h3>
+                <div class="bar-chart">${revBars}</div>
+            </div>
+            <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-globe"></i> Users by Country</h3>
+                <div class="bar-chart">${cBars}</div>
+            </div>
+            <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-trophy"></i> Tournament Sign-ups</h3>
+                <div class="bar-chart">${tBars}</div>
+            </div>
+            <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-circle-check"></i> Orders by Status</h3>
+                <div class="bar-chart">${statusBars}</div>
+            </div>
+            <div style="background:#1e1e1e;padding:24px;border-radius:8px;">
+                <h3 style="color:#ff4400;margin-bottom:16px;"><i class="fa-solid fa-chart-line"></i> Summary &amp; Stock Alerts</h3>
+                <table style="background:transparent;margin-bottom:16px;">
+                    <tr><td style="color:#aaa;padding:8px 4px;">Total Users</td><td style="color:cyan;font-weight:bold;">${d.total_users}</td></tr>
+                    <tr><td style="color:#aaa;padding:8px 4px;">Total Bookings</td><td style="color:cyan;font-weight:bold;">${d.total_bookings}</td></tr>
+                    <tr><td style="color:#aaa;padding:8px 4px;">Total Orders</td><td style="color:cyan;font-weight:bold;">${d.total_orders}</td></tr>
+                    <tr><td style="color:#aaa;padding:8px 4px;">Total Revenue</td><td style="color:cyan;font-weight:bold;">$${parseFloat(d.total_revenue).toFixed(2)}</td></tr>
+                    <tr><td style="color:#aaa;padding:8px 4px;">Avg Order Value</td><td style="color:cyan;font-weight:bold;">$${parseFloat(d.avg_order).toFixed(2)}</td></tr>
+                    <tr><td style="color:#aaa;padding:8px 4px;">Products Listed</td><td style="color:cyan;font-weight:bold;">${d.total_products}</td></tr>
+                </table>
+                <p style="color:#ffaa00;font-size:0.82rem;margin-bottom:8px;"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</p>
+                <table style="background:transparent;">${lowStockHtml}</table>
+            </div>
+        </div>`;
+}
+
+/* ───── SEARCH ───── */
+function filterRows(input, tbodyId) {
+    const q = input.value.toLowerCase();
+    document.querySelectorAll(`#${tbodyId} tr`).forEach(r=>{
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+/* ───── INIT ───── */
+if (checkAuth()) renderDashboard();
+</script>
+</body>
+</html>

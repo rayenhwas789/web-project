@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register | NEXUS Esports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .auth-page { max-width: 520px; margin: 30px auto; }
+
+        .auth-tabs {
+            display: flex;
+            background: #0a0a0a;
+            border: 1px solid #1e1e1e;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #444;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+        }
+        .auth-tab.active { color: cyan; background: #0f0f0f; border-bottom: 2px solid cyan; }
+        .auth-tab:hover:not(.active) { color: #888; background: #0c0c0c; }
+
+        .auth-panel {
+            display: none;
+            background: #0f0f0f;
+            border: 1px solid #1e1e1e;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 28px;
+        }
+        .auth-panel.active { display: block; }
+        .auth-panel form { background: none; border: none; padding: 0; margin: 0; max-width: 100%; }
+        .auth-panel form h2 { margin-bottom: 20px; }
+
+        .admin-toggle-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            padding: 10px;
+            color: #2a2a2a;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s;
+            letter-spacing: 1px;
+        }
+        .admin-toggle-link:hover { color: #ff4400; }
+
+        .admin-login-box {
+            display: none;
+            margin-top: 12px;
+            padding: 20px;
+            background: #0a0a0a;
+            border: 1px solid #ff440022;
+            border-radius: 8px;
+        }
+        .admin-login-box.visible { display: block; }
+        .admin-login-box h3 { color: #ff4400; margin-bottom: 16px; font-size: 0.95rem; letter-spacing: 2px; }
+        .admin-login-box label { color: #555; }
+        .admin-login-box input { border-color: #1e1e1e; background: #060606; }
+
+        .btn-admin {
+            background: #ff4400; color: white; width: 100%;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 1px;
+            border: none; padding: 11px; border-radius: 6px; cursor: pointer; font-size: 1rem;
+            transition: background 0.2s;
+        }
+        .btn-admin:hover { background: #ff6622; }
+        .btn-admin:disabled { background: #5a1e00; cursor: not-allowed; }
+
+        .error-box {
+            display: none; color: #ff4d4d; margin-bottom: 14px;
+            padding: 10px 14px; background: #1a0a0a;
+            border-left: 3px solid #ff4d4d; border-radius: 4px; font-size: 0.87rem;
+        }
+        .success-box {
+            display: none; color: #00ff88; margin-bottom: 14px;
+            padding: 10px 14px; background: #001a0d;
+            border-left: 3px solid #00ff88; border-radius: 4px; font-size: 0.87rem;
+        }
+
+        .pw-wrap { position: relative; }
+        .pw-wrap input { padding-right: 44px; }
+        .pw-toggle {
+            position: absolute; right: 13px; top: 50%; transform: translateY(-60%);
+            cursor: pointer; color: #444; font-size: 0.9rem; padding: 4px;
+        }
+        .pw-toggle:hover { color: #888; }
+
+        .remember-row {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 18px; color: #666; font-size: 0.85rem;
+        }
+        .remember-row input[type="checkbox"] { width: auto; margin: 0; }
+
+        .auth-link { color: #444; font-size: 0.82rem; text-align: center; margin-top: 14px; }
+        .auth-link a { color: cyan; text-decoration: none; }
+
+        .btn-submit {
+            width: 100%; background: cyan; color: #000;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            font-size: 1rem; letter-spacing: 1px;
+            border: none; padding: 11px; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-submit:hover { background: #fff; }
+        .btn-submit:disabled { background: #006666; color: #004444; cursor: not-allowed; }
+
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #000; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .db-status { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #2a2a2a; margin-bottom: 18px; }
+        .db-dot { width: 7px; height: 7px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 6px rgba(0,255,136,0.5); }
+    </style>
+</head>
+<body>
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">NEXUS</div>
+        <div class="logo-sub">Esports Hub</div>
+    </div>
+    <div class="nav-section">
+        <div class="nav-section-label">Navigation</div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> Home</a></li>
+        </ul>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+        <div class="nav-section-label">Esports</div>
+        <ul class="nav-links">
+            <li><a href="games.html"><i class="fa-solid fa-gamepad"></i> Games</a></li>
+            <li><a href="teams.html"><i class="fa-solid fa-users"></i> Teams</a></li>
+            <li><a href="tournaments.html"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+            <li><a href="highlights.html"><i class="fa-solid fa-film"></i> Highlights</a></li>
+        </ul>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <ul class="nav-links">
+            <li><a href="login.html" class="active"><i class="fa-solid fa-right-to-bracket"></i> Login / Register</a></li>
+            <li><a href="profile.html"><i class="fa-solid fa-circle-user"></i> My Profile</a></li>
+            <li><a href="booking.html"><i class="fa-solid fa-ticket"></i> Book / Order</a></li>
+        </ul>
+    </div>
+    <div class="sidebar-footer">&copy; 2026 NEXUS ESPORTS</div>
+</nav>
+
+<main>
+    <h1><i class="fa-solid fa-right-to-bracket"></i> Account</h1>
+    <p>Sign in or create your NEXUS account to get started.</p>
+
+    <div class="auth-page">
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchTab('login', this)">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+            <button class="auth-tab" onclick="switchTab('register', this)">
+                <i class="fa-solid fa-user-plus"></i> Register
+            </button>
+        </div>
+
+        <!-- ── LOGIN ── -->
+        <div id="tab-login" class="auth-panel active">
+            <div class="db-status">
+                <div class="db-dot"></div>
+                Connected to MySQL — nexus_esports.users
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <h2><i class="fa-solid fa-right-to-bracket" style="font-size:1rem;margin-right:8px;"></i> Sign In</h2>
+
+                <div id="loginError" class="error-box"></div>
+
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="you@example.com" required>
+
+                <label for="loginPwd">Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="loginPwd" placeholder="Your password" required>
+                    <i class="fa-solid fa-eye pw-toggle" onclick="togglePw('loginPwd',this)"></i>
+                </div>
+
+                <div class="remember-row">
+                    <input type="checkbox" id="remember">
+                    <label for="remember" style="margin:0;color:#666;">Remember me</label>
+                </div>
+
+                <button type="submit" class="btn-submit" id="loginBtn">Sign In</button>
+
+                <div class="auth-link" style="margin-top:12px;">
+                    <a href="#">Forgot password?</a>
+                </div>
+            </form>
+
+            <!-- Admin access -->
+            <a class="admin-toggle-link" onclick="toggleAdminBox()">
+                <i class="fa-solid fa-lock"></i> Admin Access
+            </a>
+
+            <div id="adminLoginBox" class="admin-login-box">
+                <h3><i class="fa-solid fa-shield-halved"></i> Admin Login</h3>
+                <div id="adminError" class="error-box"></div>
+
+                <label>Admin Username</label>
+                <input type="text" id="adminUser" placeholder="admin">
+
+                <label>Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="adminPwd" placeholder="Admin password">
+                    <i class="fa-solid fa-eye pw-toggle" onclick="togglePw('adminPwd',this)"></i>
+                </div>
+
+                <button class="btn-admin" id="adminBtn" onclick="handleAdminLogin()">
+                    <i class="fa-solid fa-shield-halved"></i> Enter Admin Panel
+                </button>
+            </div>
+        </div>
+
+        <!-- ── REGISTER ── -->
+        <div id="tab-register" class="auth-panel">
+            <div class="db-status">
+                <div class="db-dot"></div>
+                New accounts saved to MySQL — nexus_esports.users
+            </div>
+
+            <form onsubmit="handleRegister(event)">
+                <h2><i class="fa-solid fa-user-plus" style="font-size:1rem;margin-right:8px;"></i> Create Account</h2>
+
+                <div id="regError" class="error-box"></div>
+                <div id="regSuccess" class="success-box"></div>
+
+                <label for="regUsername">Username</label>
+                <input type="text" id="regUsername" placeholder="ProGamer99" required>
+
+                <label for="regEmail">Email</label>
+                <input type="email" id="regEmail" placeholder="you@example.com" required>
+
+                <label for="regPwd">Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="regPwd" placeholder="Min. 6 characters" required>
+                    <i class="fa-solid fa-eye pw-toggle" onclick="togglePw('regPwd',this)"></i>
+                </div>
+
+                <label for="regPwd2">Confirm Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="regPwd2" placeholder="Repeat password" required>
+                    <i class="fa-solid fa-eye pw-toggle" onclick="togglePw('regPwd2',this)"></i>
+                </div>
+
+                <label for="regCountry">Country</label>
+                <select id="regCountry">
+                    <option value="">Select country...</option>
+                    <option value="TN">Tunisia</option>
+                    <option value="US">United States</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="FR">France</option>
+                    <option value="DE">Germany</option>
+                    <option value="KR">South Korea</option>
+                    <option value="BR">Brazil</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <button type="submit" class="btn-submit" id="regBtn">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>&copy; 2026 NEXUS ESPORTS. All Rights Reserved.</footer>
+</main>
+
+<script>
+    /* ── helpers ── */
+    function switchTab(name, btn) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function togglePw(id, icon) {
+        const el = document.getElementById(id);
+        el.type = el.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    }
+
+    function toggleAdminBox() {
+        document.getElementById('adminLoginBox').classList.toggle('visible');
+    }
+
+    function setLoading(btnId, loading, label) {
+        const btn = document.getElementById(btnId);
+        btn.disabled = loading;
+        btn.innerHTML = loading
+            ? `<span class="spinner"></span> ${label}`
+            : label;
+    }
+
+    function showError(id, msg) {
+        const el = document.getElementById(id);
+        el.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${msg}`;
+        el.style.display = 'block';
+    }
+
+    function hideError(id) { document.getElementById(id).style.display = 'none'; }
+
+    /* ── USER LOGIN — calls api/login.php ── */
+    async function handleLogin(e) {
+        e.preventDefault();
+        hideError('loginError');
+        setLoading('loginBtn', true, 'Signing in…');
+
+        const email    = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPwd').value;
+
+        try {
+            const res  = await fetch('api/login.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem('nexus_loggedIn', 'true');
+                localStorage.setItem('nexus_currentUser', JSON.stringify(data.user));
+                window.location.href = 'profile.html';
+            } else {
+                showError('loginError', data.error || 'Invalid email or password');
+            }
+        } catch (err) {
+            showError('loginError', 'Could not connect to server. Make sure XAMPP is running.');
+        }
+
+        setLoading('loginBtn', false, 'Sign In');
+    }
+
+    /* ── ADMIN LOGIN — calls api/admin_login.php ── */
+    async function handleAdminLogin() {
+        hideError('adminError');
+        setLoading('adminBtn', true, 'Checking…');
+
+        const username = document.getElementById('adminUser').value.trim();
+        const password = document.getElementById('adminPwd').value;
+
+        try {
+            const res  = await fetch('api/admin_login.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                sessionStorage.setItem('nexus_admin', 'true');
+                window.location.href = 'admin.html';
+            } else {
+                showError('adminError', data.error || 'Invalid admin credentials');
+            }
+        } catch (err) {
+            showError('adminError', 'Could not connect to server. Make sure XAMPP is running.');
+        }
+
+        setLoading('adminBtn', false, '<i class="fa-solid fa-shield-halved"></i> Enter Admin Panel');
+    }
+
+    /* ── REGISTER — calls api/register.php ── */
+    async function handleRegister(e) {
+        e.preventDefault();
+        hideError('regError');
+        document.getElementById('regSuccess').style.display = 'none';
+
+        const username = document.getElementById('regUsername').value.trim();
+        const email    = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPwd').value;
+        const pwd2     = document.getElementById('regPwd2').value;
+        const country  = document.getElementById('regCountry').value;
+
+        if (password.length < 6) { showError('regError', 'Password must be at least 6 characters'); return; }
+        if (password !== pwd2)   { showError('regError', 'Passwords do not match'); return; }
+
+        setLoading('regBtn', true, 'Creating account…');
+
+        try {
+            const res  = await fetch('api/register.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ username, email, password, country })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const suc = document.getElementById('regSuccess');
+                suc.innerHTML = '<i class="fa-solid fa-check-circle"></i> Account created! Switching to login…';
+                suc.style.display = 'block';
+                setTimeout(() => {
+                    switchTab('login', document.querySelectorAll('.auth-tab')[0]);
+                    document.getElementById('loginEmail').value = email;
+                    suc.style.display = 'none';
+                }, 1800);
+            } else {
+                showError('regError', data.error || 'Registration failed');
+            }
+        } catch (err) {
+            showError('regError', 'Could not connect to server. Make sure XAMPP is running.');
+        }
+
+        setLoading('regBtn', false, 'Create Account');
+    }
+</script>
+</body>
+</html>
